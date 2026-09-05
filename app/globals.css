@@ -188,3 +188,5 @@ summary { cursor: pointer; padding: 8px 0; }
 .pokemon-detail .buy-panel{display:block!important;margin:32px 0 0!important;padding:20px 0 0!important;border-top:2px solid var(--line);font-style:italic}
 .pokemon-detail .buy-panel label{display:flex!important;gap:20px!important;align-items:center!important}
 .pokemon-detail .buy-panel input{display:inline-block!important;appearance:auto!important;width:100px!important;height:42px!important;border:3px solid #087eaf!important;border-radius:10px!important;background:#fff!important;font-style:normal!important}
+button.text-link{cursor:pointer}
+.back-button,button.text-link{cursor:pointer!important}

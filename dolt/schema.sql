@@ -18,6 +18,8 @@ create table if not exists holdings (
   quantity decimal(18,6) not null,
   cost_basis_cents bigint not null,
   current_value_cents bigint not null,
+  product_url varchar(2048) not null,
+  image_url varchar(2048),
   acquired_at timestamp not null,
   index idx_player (player_id),
   constraint fk_holding_player foreign key (player_id) references player_accounts(player_id)
@@ -34,6 +36,17 @@ create table if not exists trades (
   executed_at timestamp not null default current_timestamp,
   index idx_trade_player_time (player_id, executed_at),
   constraint fk_trade_player foreign key (player_id) references player_accounts(player_id)
+);
+
+create table if not exists holding_price_history (
+  id bigint auto_increment primary key,
+  holding_id varchar(36) not null,
+  recorded_date date not null,
+  market_value_cents bigint not null,
+  source varchar(40) not null,
+  card_api_id varchar(120) not null,
+  unique key uq_holding_day (holding_id, recorded_date),
+  index idx_holding_date (holding_id, recorded_date)
 );
 
 create table if not exists portfolio_snapshots (

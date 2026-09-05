@@ -112,6 +112,30 @@ summary { cursor: pointer; padding: 8px 0; }
 .pagination { display: flex; gap: 24px; justify-content: center; margin: 20px; }
 .pagination a { color: #086f9f; text-decoration: underline; }
 .history-chart { display: block; width: 100%; max-height: 230px; }
+.pokemon-search { display: flex; gap: 12px; max-width: 760px; margin: 0 auto 14px; align-items: center; }
+.pokemon-search input { flex: 1; border: 2px solid var(--line); border-radius: 12px; padding: 14px; font: inherit; }
+.pokemon-search .primary-button { margin-top: 0; }
+.loading-spinner { width: 18px; height: 18px; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.data-note { text-align: center; color: var(--muted); font-size: 14px; }
+.pokemon-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 980px; margin: 24px auto; }
+.pokemon-card { border: 2px solid #ffcaca; background: #fff7f7; border-radius: 18px; padding: 18px; text-align: center; box-shadow: 0 5px 0 #ffdada; }
+.pokemon-card:hover { transform: translateY(-2px); }
+.pokemon-image { height: 170px; display: grid; place-items: center; background: #fff; border-radius: 12px; margin-bottom: 14px; }
+.pokemon-image img { max-width: 120px; max-height: 150px; width: auto; height: auto; }
+.pokemon-card h2 { font-size: 19px; margin: 8px 0; }
+.pokemon-card p { color: var(--muted); margin: 0 0 4px; font-size: 14px; }
+.pokemon-card strong { color: #c73636; font-size: 21px; }
+.pokemon-detail { display: grid; grid-template-columns: 260px 1fr; gap: 26px; max-width: 980px; margin: 0 auto; }
+.detail-art { min-height: 320px; display: grid; place-items: center; background: #fff7f7; border: 3px solid #ffcaca; border-radius: 24px; }
+.detail-art img { max-width: 210px; max-height: 280px; }
+.detail-price { color: #c73636; font-size: 38px; font-weight: 900; margin: 10px 0 0; }
+.price-history { grid-column: 1 / -1; border-top: 2px solid var(--line); padding-top: 20px; }
+.history-bars { height: 190px; display: flex; align-items: end; justify-content: space-around; gap: 18px; border-bottom: 1px solid var(--line); }
+.history-bars > div { height: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 5px; }
+.history-bars i { display: block; width: min(70px, 80%); background: #ef5350; border-radius: 8px 8px 0 0; min-height: 12px; }
+.history-bars small { color: var(--muted); }.history-bars b { font-size: 12px; }
+.snapshot-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }.snapshot-grid div { background: #f5fbfe; border: 1px solid var(--line); border-radius: 12px; padding: 14px; }.snapshot-grid dt { color: var(--muted); font-size: 13px; }.snapshot-grid dd { color: var(--navy); font-size: 20px; font-weight: 800; margin: 5px 0 0; }
 .history-labels { display: flex; justify-content: space-between; gap: 14px; font-size: 14px; margin-bottom: 16px; }
 .profile-menu { position: relative; }
 .profile-menu summary { display: flex; align-items: center; gap: 10px; list-style: none; }
@@ -128,6 +152,10 @@ summary { cursor: pointer; padding: 8px 0; }
 @media(max-width:780px) {
   .admin-columns { grid-template-columns: 1fr; }
   .profile-columns { grid-template-columns: 1fr; }
+  .pokemon-grid { grid-template-columns: 1fr 1fr; }
+  .pokemon-detail { grid-template-columns: 1fr; }
+  .detail-art { min-height: 240px; }
+  .price-history { grid-column: auto; }
   .profile-name { display: none; }
   .site-header nav .nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .site-header nav a:nth-child(2) { display: flex; }
@@ -139,4 +167,8 @@ summary { cursor: pointer; padding: 8px 0; }
   .site-header img { width: 120px; }
   .site-header { gap: 6px; }
   .site-header nav a { padding: 0 6px; }
+  .pokemon-search { flex-wrap: wrap; }
+  .pokemon-search input { flex-basis: 100%; }
+  .pokemon-grid { grid-template-columns: 1fr; }
+  .snapshot-grid { grid-template-columns: 1fr 1fr; }
 }

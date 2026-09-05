@@ -1,0 +1,3 @@
+"use client";
+import { useState } from "react";
+export function PokemonSearchForm({query}:{query:string}){const [pending,setPending]=useState(false);return <form className="pokemon-search" method="get" onSubmit={()=>setPending(true)}><input name="q" defaultValue={query} placeholder="Search Pikachu, Charizard, …" aria-label="Search Pokémon cards" /><button className="primary-button" type="submit" disabled={pending}>{pending?"Searching…":"Search"}</button>{query&&<a className="text-button" href="/trade/pokemon">Reset</a>}{pending&&<span className="loading-spinner" role="status" aria-label="Loading search results" />}</form>}

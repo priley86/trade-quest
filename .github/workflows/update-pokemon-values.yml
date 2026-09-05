@@ -1,0 +1,17 @@
+name: Update Pokémon values
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 12 * * *"
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: node scripts/update-pokemon-values.mjs
+        env:
+          DOLT_DATABASE_URL: ${{ secrets.DOLT_DATABASE_URL }}
+          POKEMON_TCG_API_KEY: ${{ secrets.POKEMON_TCG_API_KEY }}

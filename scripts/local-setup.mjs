@@ -28,6 +28,8 @@ const connection = await mysql.createConnection({ host: "127.0.0.1", port: 3307,
 await connection.query("CREATE DATABASE IF NOT EXISTS tradequest");
 await connection.query("USE tradequest");
 await connection.query(await readFile("dolt/schema.sql", "utf8"));
+await connection.query("ALTER TABLE holdings ADD COLUMN IF NOT EXISTS product_url varchar(2048) NOT NULL DEFAULT ''");
+await connection.query("ALTER TABLE holdings ADD COLUMN IF NOT EXISTS image_url varchar(2048)");
 const db = createClient(api, service, { auth: { persistSession: false, autoRefreshToken: false } });
 const email = "admin@tradequest.local";
 const password = "TradeQuestLocal1!";

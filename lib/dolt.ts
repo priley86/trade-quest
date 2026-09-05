@@ -2,6 +2,7 @@ import "server-only";
 import { enrollmentQuery, sqlText, type Enrollment } from "./dolt-sql";
 import { uuid } from "./validation";
 import mysql, { type Pool, type RowDataPacket } from "mysql2/promise";
+import crypto from "node:crypto";
 
 const local = globalThis as typeof globalThis & { tradequestDolt?: Pool };
 function localPool(): Pool | null {
@@ -10,8 +11,21 @@ function localPool(): Pool | null {
   local.tradequestDolt ??= mysql.createPool({ uri: url, connectionLimit: 5, connectTimeout: 5000 });
   return local.tradequestDolt;
 }
+export async function buyPokemon(playerId: string, product: { id: string; name: string; url: string; imageUrl: string; nearMintNormalCents: number }) {
+  const pool = localPool();
+  if (!pool) throw new Error("Purchases are available with local Dolt first; hosted ledger writes are coming next.");
+  const id = sqlText(uuid(playerId)); const price = Math.round(product.nearMintNormalCents);
+  if (!Number.isSafeInteger(price) || price < 1) throw new Error("This card does not have a valid price.");
+  const conn = await pool.getConnection();
+  try { await conn.beginTransaction(); const [accounts] = await conn.query<RowDataPacket[]>(`SELECT cash_cents FROM player_accounts WHERE player_id=${id} FOR UPDATE`); if (!accounts[0]) throw new Error("Open your portfolio before buying a card."); if (Number(accounts[0].cash_cents) < price) throw new Error("You don’t have enough pretend money for this card."); const text = (v: string) => sqlText(v); await conn.query(`UPDATE player_accounts SET cash_cents=cash_cents-${price} WHERE player_id=${id}`); await conn.query(`INSERT INTO holdings (id,player_id,asset_type,asset_public_id,display_name,quantity,cost_basis_cents,current_value_cents,product_url,image_url,acquired_at) VALUES (${text(crypto.randomUUID())},${id},'pokemon_card',${text(product.id)},${text(product.name)},1,${price},${price},${text(product.url)},${text(product.imageUrl)},CURRENT_TIMESTAMP)`); await conn.query(`INSERT INTO trades (id,player_id,asset_type,asset_public_id,side,quantity,price_cents) VALUES (${text(crypto.randomUUID())},${id},'pokemon_card',${text(product.id)},'buy',1,${price})`); await conn.commit(); } catch (error) { await conn.rollback(); throw error; } finally { conn.release(); }
+}
+export async function sellHolding(playerId: string, holdingId: string) {
+  const pool = localPool(); if (!pool) throw new Error("Selling is available with local Dolt first; hosted ledger writes are coming next.");
+  const id = sqlText(uuid(playerId)); const hid = sqlText(holdingId); const conn = await pool.getConnection();
+  try { await conn.beginTransaction(); const [rows] = await conn.query<RowDataPacket[]>(`SELECT current_value_cents,asset_type,asset_public_id,quantity FROM holdings WHERE id=${hid} AND player_id=${id} FOR UPDATE`); const h = rows[0]; if (!h) throw new Error("That holding is no longer in your portfolio."); const value = Number(h.current_value_cents); await conn.query(`UPDATE player_accounts SET cash_cents=cash_cents+${value} WHERE player_id=${id}`); await conn.query(`INSERT INTO trades (id,player_id,asset_type,asset_public_id,side,quantity,price_cents) VALUES (${sqlText(crypto.randomUUID())},${id},${sqlText(h.asset_type)},${sqlText(h.asset_public_id)},'sell',${Number(h.quantity)},${value})`); await conn.query(`DELETE FROM holdings WHERE id=${hid} AND player_id=${id}`); await conn.commit(); } catch (error) { await conn.rollback(); throw error; } finally { conn.release(); }
+}
 
-export type Holding = { id: string; asset_type: "stock" | "pokemon_card" | "sports_card"; display_name: string; quantity: number; cost_basis_cents: number; current_value_cents: number };
+export type Holding = { id: string; asset_type: "stock" | "pokemon_card" | "sports_card"; display_name: string; quantity: number; cost_basis_cents: number; current_value_cents: number; product_url?: string; image_url?: string };
 export type Snapshot = { snapshot_date: string; total_value_cents: number };
 export type Portfolio = { player_id: string; display_name: string; crew_public_id: string; cash_cents: number; holdings: Holding[]; snapshots: Snapshot[] };
 export type Leader = { player_id: string; display_name: string; cash_cents: number; total_value_cents: number };
@@ -42,7 +56,7 @@ export async function portfolio(playerId: string): Promise<Portfolio | null> {
   const accounts = await readQuery<Omit<Portfolio, "holdings" | "snapshots">>(`SELECT player_id,display_name,crew_public_id,cash_cents FROM player_accounts WHERE player_id=${id}`);
   if (!accounts[0]) return null;
   const [holdings, snapshots] = await Promise.all([
-    readQuery<Holding>(`SELECT id,asset_type,display_name,quantity,cost_basis_cents,current_value_cents FROM holdings WHERE player_id=${id} ORDER BY display_name LIMIT 500`),
+    readQuery<Holding>(`SELECT id,asset_type,display_name,quantity,cost_basis_cents,current_value_cents,product_url,image_url FROM holdings WHERE player_id=${id} ORDER BY display_name LIMIT 500`),
     readQuery<Snapshot>(`SELECT snapshot_date,total_value_cents FROM portfolio_snapshots WHERE player_id=${id} ORDER BY snapshot_date DESC LIMIT 90`),
   ]);
   return { ...accounts[0], cash_cents: Number(accounts[0].cash_cents),

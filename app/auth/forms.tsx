@@ -19,7 +19,7 @@ export function SignupForm({ code, disabled = false }: { code: string; disabled?
       <label>First name<input name="firstName" autoComplete="given-name" required maxLength={80} /></label>
       <label>Last name<input name="lastName" autoComplete="family-name" required maxLength={80} /></label>
     </div>
-    <label>Email or phone<input name="contact" autoComplete="username" required maxLength={254} placeholder="parent@example.com or +15551234567" /></label>
+    <label>Email<input name="contact" type="email" autoComplete="email" required maxLength={254} placeholder="parent@example.com" /></label>
     <label>Create a password<input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} required placeholder="At least 8 characters" /></label>
     <button className="primary-button" disabled={pending || disabled}>{pending ? "Joining your crew…" : disabled ? "Preview only" : "Start my adventure →"}</button>
   </form>}{state.message && <p role="status" className="form-status">{state.message}</p>}{state.phone && <PhoneConfirmation phone={state.phone} />}</>;

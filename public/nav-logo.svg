@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 220" role="img" aria-labelledby="title desc">
+<title id="title">Trade Quest logo</title>
+<desc id="desc">Treasure chest with trading card ball and rising stock arrow, beside Trade Quest wordmark.</desc>
+
+<!-- Transparent canvas -->
+<g stroke="#082A4F" stroke-width="10" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Chest lid -->
+  <path fill="#8A4B24" d="M55 92 Q65 42 116 42 H225 Q274 42 284 92 L272 105 H66 Z"/>
+  <path fill="#F7C928" d="M55 92 Q65 42 116 42 H225 Q274 42 284 92 L272 105 H66 Z M83 84 H257 Q246 61 220 61 H119 Q94 61 83 84 Z" fill-rule="evenodd"/>
+
+  <!-- Chest body -->
+  <path fill="#8A4B24" d="M48 101 H291 L276 178 H64 Z"/>
+  <path fill="#F7C928" d="M48 101 H291 L276 178 H64 Z M77 121 H261 L254 158 H84 Z" fill-rule="evenodd"/>
+
+  <!-- Lock -->
+  <path fill="#F7C928" d="M151 105 H188 V141 L170 154 L151 141 Z"/>
+  <circle cx="170" cy="126" r="6" fill="#082A4F" stroke="none"/>
+
+  <!-- Poké-ball style orb -->
+  <circle cx="87" cy="139" r="32" fill="#FFFFFF"/>
+  <path fill="#E73535" stroke="none" d="M55 139 A32 32 0 0 1 119 139 Z"/>
+  <path stroke="#082A4F" fill="none" d="M55 139 H119"/>
+  <circle cx="87" cy="139" r="10" fill="#FFFFFF"/>
+
+  <!-- Baseball card -->
+  <rect x="229" y="108" width="47" height="63" rx="4" fill="#FFF3D0"/>
+  <circle cx="252.5" cy="134" r="14" fill="#FFFFFF"/>
+  <path d="M245 123 Q249 128 245 134 Q241 140 245 145" fill="none" stroke="#E73535" stroke-width="4"/>
+  <path d="M260 123 Q256 128 260 134 Q264 140 260 145" fill="none" stroke="#E73535" stroke-width="4"/>
+  <path d="M240 158 H265" fill="none" stroke="#082A4F" stroke-width="5"/>
+
+  <!-- Stock arrow -->
+  <path d="M195 105 L220 80 L237 94 L266 61" fill="none" stroke="#39B85A" stroke-width="15"/>
+  <path d="M254 59 L274 55 L270 76" fill="#39B85A" stroke="#39B85A"/>
+</g>
+
+<!-- Wordmark -->
+<g font-family="Arial Black, Arial, sans-serif" font-weight="900">
+  <text x="325" y="112" font-size="70" fill="#082A4F" letter-spacing="-2">TRADE</text>
+  <text x="325" y="178" font-size="70" fill="#F7C928" stroke="#082A4F" stroke-width="4" paint-order="stroke" letter-spacing="-3">QUEST</text>
+</g>
+</svg>

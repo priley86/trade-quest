@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+<title id="title">Trade Quest favicon</title>
+
+<!-- Transparent canvas -->
+<g stroke="#082A4F" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Chest lid -->
+  <path fill="#F7C928" d="M38 99 Q45 45 94 45 H174 Q221 45 226 99 L213 111 H51 Z"/>
+  <path fill="#8A4B24" d="M66 91 Q75 65 101 65 H169 Q193 65 199 91 Z"/>
+
+  <!-- Chest body -->
+  <path fill="#F7C928" d="M34 103 H229 L210 211 H54 Z"/>
+  <path fill="#8A4B24" d="M69 132 H197 L188 184 H78 Z"/>
+
+  <!-- Lock -->
+  <path fill="#F7C928" d="M113 107 H147 V143 L130 155 L113 143 Z"/>
+  <circle cx="130" cy="128" r="6" fill="#082A4F" stroke="none"/>
+
+  <!-- Poké-ball style orb -->
+  <circle cx="75" cy="165" r="36" fill="#FFFFFF"/>
+  <path fill="#E73535" stroke="none" d="M39 165 A36 36 0 0 1 111 165 Z"/>
+  <path d="M39 165 H111" fill="none"/>
+  <circle cx="75" cy="165" r="11" fill="#FFFFFF"/>
+
+  <!-- Rising stock arrow -->
+  <path d="M151 113 L170 91 L184 103 L211 73" fill="none" stroke="#39B85A" stroke-width="16"/>
+  <path d="M199 71 L220 67 L217 89" fill="#39B85A" stroke="#39B85A"/>
+</g>
+</svg>

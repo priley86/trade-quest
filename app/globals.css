@@ -177,3 +177,14 @@ summary { cursor: pointer; padding: 8px 0; }
   .snapshot-grid { grid-template-columns: 1fr 1fr; }
 }
 .recent-sales-heading { border-top: 2px solid var(--line); padding-top: 20px; margin-top: 40px; }
+.stock-chart{max-width:980px;margin:26px auto 0}
+.stock-chart{box-sizing:border-box;width:100%;max-width:980px;margin:32px auto 0;padding:22px 24px}
+.stock-chart .history-chart{margin-top:18px}
+.pokemon-card .category-icon.stock{margin-left:auto;margin-right:auto}
+.buy-panel{margin-top:24px;padding-top:18px;border-top:1px solid var(--line);font-style:italic}
+.buy-panel label{display:flex;align-items:center;gap:14px;font-weight:700}
+.buy-panel input{width:90px;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-style:normal;text-align:center}
+.buy-panel .primary-button{margin-top:14px}
+.pokemon-detail .buy-panel{display:block!important;margin:32px 0 0!important;padding:20px 0 0!important;border-top:2px solid var(--line);font-style:italic}
+.pokemon-detail .buy-panel label{display:flex!important;gap:20px!important;align-items:center!important}
+.pokemon-detail .buy-panel input{display:inline-block!important;appearance:auto!important;width:100px!important;height:42px!important;border:3px solid #087eaf!important;border-radius:10px!important;background:#fff!important;font-style:normal!important}

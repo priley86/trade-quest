@@ -7,7 +7,7 @@ export const options = [
 ] as const;
 export function TradeOptions({ base = "" }: { base?: string }) {
   return <><PageIntro eyebrow="The Trading Post" title="What do you want to explore?" text="Pick a world below. Buying and selling will open in a future quest." />
-    <section className="trade-grid">{options.map(o => <Link href={`${base}/trade/${o.type}`} key={o.type} className={`trade-option ${o.color}`}><span className="mini-badge">{o.type === "pokemon" || o.type === "sports" ? "Explore now" : "Coming soon"}</span><CategoryIcon type={o.type} large /><h2>{o.title}</h2><p>{o.copy}</p><span className="explore">Explore {o.title} <b>→</b></span></Link>)}</section>
+    <section className="trade-grid">{options.map(o => <Link href={`${base}/trade/${o.type === "stock" ? "stocks" : o.type}`} key={o.type} className={`trade-option ${o.color}`}><span className="mini-badge">{o.type === "pokemon" || o.type === "sports" || o.type === "stock" ? "Explore now" : "Coming soon"}</span><CategoryIcon type={o.type} large /><h2>{o.title}</h2><p>{o.copy}</p><span className="explore">Explore {o.title} <b>→</b></span></Link>)}</section>
     <aside className="coach-tip"><span>🧭</span><div><b>Coach Quest says:</b><p>A smart explorer doesn’t spend all their gold in one place. Try collecting a mix!</p></div></aside></>;
 }
 export function CategoryPreview({ category, base = "" }: { category: string; base?: string }) {

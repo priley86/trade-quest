@@ -9,9 +9,9 @@ export function AppShell({ children, active, profile, demo = false }: { children
     {profile ? <details className="profile-menu"><summary><span className="avatar">{profile.first_name[0]}</span><span className="profile-name">{profile.first_name}</span></summary><div className="profile-dropdown"><Link href="/profile">My profile</Link>{profile.role === "admin" && <Link href="/admin">Crew control center</Link>}<form action={logout}><button className="text-button">Log out</button></form></div></details> : <Link className="login-link" href="/login">Log in</Link>}
     </header><main>{demo && <div className="demo-banner"><b>Demo quest</b> · Sample players and pretend balances. <Link href="/invite/demo-quest">Preview signup</Link></div>}{children}</main></div>;
 }
-export function CategoryIcon({ type, large = false }: { type: "stock" | "pokemon" | "sports"; large?: boolean }) {
+export function CategoryIcon({ type, large = false, sport }: { type: "stock" | "pokemon" | "sports"; large?: boolean; sport?: string }) {
   const data = { stock: ["📈", "Stocks"], pokemon: ["◉", "Pokémon cards"], sports: ["⚾", "Sports cards"] }[type];
-  return <span className={`category-icon ${type} ${large ? "large" : ""}`} aria-label={data[1]}>{type === "pokemon" ? <Image className="pokeball-icon" src="/pokeball.svg" width={large ? 66 : 30} height={large ? 66 : 30} alt="" aria-hidden="true" /> : data[0]}</span>;
+  const icon = sport === "Basketball" ? "🏀" : sport === "Football" ? "🏈" : sport === "Hockey" ? "🏒" : data[0]; return <span className={`category-icon ${type} ${large ? "large" : ""}`} aria-label={data[1]}>{type === "pokemon" ? <Image className="pokeball-icon" src="/pokeball.svg" width={large ? 66 : 30} height={large ? 66 : 30} alt="" aria-hidden="true" /> : icon}</span>;
 }
 export function StatCard({ label, value, note, tone, icon }: { label: string; value: string; note: string; tone: string; icon: string }) {
   return <article className={`stat-card ${tone}`}><div><span className="eyebrow">{label}</span><strong>{value}</strong><small>{note}</small></div><span className="stat-icon">{icon}</span></article>;

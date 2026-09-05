@@ -2,7 +2,7 @@ name: Update Pokémon values
 on:
   workflow_dispatch:
   schedule:
-    - cron: "15 12 * * *"
+    - cron: "15 12 1,11,21 * *"
 jobs:
   update:
     runs-on: ubuntu-latest

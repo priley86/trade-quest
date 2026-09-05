@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "next/link"; import { BackButton } from "../../back-button";
 import { notFound } from "next/navigation";
 import { requirePlayer } from "../../../../lib/auth";
 import { getPokemonProduct } from "../../../../lib/tcgplayer";
@@ -9,5 +9,5 @@ export default async function PokemonDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const product = await getPokemonProduct(id);
   if (!product) notFound();
-  return <AppShell active="trade" profile={profile}><Link className="text-link" href="/trade/pokemon">← Back to Pokémon cards</Link><PokemonDetail product={product} /></AppShell>;
+  return <AppShell active="trade" profile={profile}><BackButton label="← Back to Pokémon cards" /><PokemonDetail product={product} /></AppShell>;
 }

@@ -1,0 +1,2 @@
+"use client"; import {useState} from "react"; import type {SportsProduct} from "../../../lib/cardsight"; import {buySportsCard} from "./actions"; import {money} from "../../../lib/validation";
+export function SportsBuy({product}:{product:SportsProduct}){const [message,setMessage]=useState("");return <><button className="primary-button" onClick={async()=>{setMessage("Buying…");setMessage((await buySportsCard({},product)).message)}}>Buy this card for {money(product.marketPriceCents)}</button>{message&&<p className="form-status" role="status">{message}</p>}</>}

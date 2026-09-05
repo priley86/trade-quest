@@ -31,7 +31,7 @@ export function PortfolioView({ data, firstName, crewName, crewCode, own = true,
     </section>}
     <section className="holdings-card"><div className="section-heading"><h2>{own ? "Your collection" : "Collection"}</h2></div>
       {!data.holdings.length ? <p className="empty-copy">The backpack is empty. Trading opens in a future quest!</p> : <div className="holding-list">{data.holdings.map(h => <Link className="holding-row" key={h.id} href={`/portfolio/${h.id}`}>
-        <CategoryIcon type={h.asset_type === "stock" ? "stock" : h.asset_type === "pokemon_card" ? "pokemon" : "sports"} />
+        <CategoryIcon type={h.asset_type === "stock" ? "stock" : h.asset_type === "pokemon_card" ? "pokemon" : "sports"} sport={h.sport_segment} />
         <div className="holding-name"><b>{h.display_name}</b><small>{h.quantity} {h.asset_type === "stock" ? "shares" : "cards"} · Cost {money(h.cost_basis_cents)}</small></div>
         <div className="holding-value"><b>{money(h.current_value_cents)}</b><span className={h.current_value_cents >= h.cost_basis_cents ? "positive" : "negative"}>{h.current_value_cents >= h.cost_basis_cents ? "+" : ""}{money(h.current_value_cents - h.cost_basis_cents)} · {returnPercent(h.current_value_cents, h.cost_basis_cents)}</span>{own && <SellButton id={h.id} />}</div>
       </Link>)}</div>}

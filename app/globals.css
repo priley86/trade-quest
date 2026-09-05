@@ -115,6 +115,8 @@ summary { cursor: pointer; padding: 8px 0; }
 .pokemon-search { display: flex; gap: 12px; max-width: 760px; margin: 0 auto 14px; align-items: center; }
 .pokemon-search input { flex: 1; border: 2px solid var(--line); border-radius: 12px; padding: 14px; font: inherit; }
 .pokemon-search .primary-button { margin-top: 0; }
+.pokemon-detail > div:nth-child(2) .primary-button { margin-top: 16px; }
+.pokemon-detail > div:nth-child(2) .snapshot-grid { margin-top: 20px; }
 .loading-spinner { width: 18px; height: 18px; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .data-note { text-align: center; color: var(--muted); font-size: 14px; }
@@ -136,6 +138,8 @@ summary { cursor: pointer; padding: 8px 0; }
 .history-bars i { display: block; width: min(70px, 80%); background: #ef5350; border-radius: 8px 8px 0 0; min-height: 12px; }
 .history-bars small { color: var(--muted); }.history-bars b { font-size: 12px; }
 .snapshot-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }.snapshot-grid div { background: #f5fbfe; border: 1px solid var(--line); border-radius: 12px; padding: 14px; }.snapshot-grid dt { color: var(--muted); font-size: 13px; }.snapshot-grid dd { color: var(--navy); font-size: 20px; font-weight: 800; margin: 5px 0 0; }
+.price-history table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 16px; font-size: 14px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }.price-history th, .price-history td { padding: 11px 12px; text-align: left; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }.price-history th { background: #f5fbfe; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }.price-history tr:last-child td { border-bottom: 0; }.price-history th:last-child, .price-history td:last-child { border-right: 0; }.price-history h2 + table { margin-bottom: 24px; }
+.price-history table + h2 { border-top: 2px solid var(--line); padding-top: 20px; }
 .history-labels { display: flex; justify-content: space-between; gap: 14px; font-size: 14px; margin-bottom: 16px; }
 .profile-menu { position: relative; }
 .profile-menu summary { display: flex; align-items: center; gap: 10px; list-style: none; }
@@ -172,3 +176,4 @@ summary { cursor: pointer; padding: 8px 0; }
   .pokemon-grid { grid-template-columns: 1fr; }
   .snapshot-grid { grid-template-columns: 1fr 1fr; }
 }
+.recent-sales-heading { border-top: 2px solid var(--line); padding-top: 20px; margin-top: 40px; }

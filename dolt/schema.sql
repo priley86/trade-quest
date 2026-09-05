@@ -13,6 +13,7 @@ create table if not exists holdings (
   id varchar(36) primary key,
   player_id varchar(36) not null,
   asset_type enum('stock','pokemon_card','sports_card') not null,
+  sport_segment varchar(40),
   asset_public_id varchar(120) not null,
   display_name varchar(160) not null,
   quantity decimal(18,6) not null,

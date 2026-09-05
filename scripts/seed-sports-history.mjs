@@ -1,0 +1,5 @@
+import mysql from "mysql2/promise";
+const db=await mysql.createConnection({uri:process.env.DOLT_DATABASE_URL||"mysql://root@127.0.0.1:3307/tradequest"});
+const [rows]=await db.query("SELECT id,current_value_cents FROM holdings WHERE asset_type='sports_card'");
+for(const h of rows){for(let days=30;days>=10;days-=10){const value=Math.max(1,Math.round(Number(h.current_value_cents)*(0.9+Math.random()*0.12)));const [existing]=await db.query("SELECT id FROM holding_price_history WHERE holding_id=? AND recorded_date=DATE_SUB(CURRENT_DATE,INTERVAL ? DAY)",[h.id,days]);if(existing.length) await db.query("UPDATE holding_price_history SET market_value_cents=?,source='seeded-sports' WHERE id=?",[value,existing[0].id]); else await db.query("INSERT INTO holding_price_history (holding_id,recorded_date,market_value_cents,source,card_api_id) SELECT ?,DATE_SUB(CURRENT_DATE,INTERVAL ? DAY),?,'seeded-sports',asset_public_id FROM holdings WHERE id=?",[h.id,days,value,h.id]);}}
+console.log(`[sports-seed] seeded ${rows.length} holding(s)`);await db.end();

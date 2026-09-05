@@ -1,0 +1,2 @@
+import { requirePlayer } from "../../../lib/auth"; import { AppShell } from "../../ui"; import { SportsBrowser } from "./view";
+export default async function SportsPage({searchParams}:{searchParams:Promise<{q?:string;sport?:string}>}){const {profile}=await requirePlayer();const p=await searchParams;return <AppShell active="trade" profile={profile}><SportsBrowser query={p.q||""} sport={p.sport||""}/></AppShell>}

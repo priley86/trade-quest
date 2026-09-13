@@ -42,6 +42,30 @@ export default async function AdminPage({
     throw new Error("Could not load admin data. Check the Supabase schema.");
   const crews = crewResult.data as Crew[];
   const profiles = userResult.data as Profile[];
+  const { data: memberships, error: membershipsError } = profiles.length
+    ? await supabase
+        .from("crew_members")
+        .select("user_id,crew_id")
+        .in(
+          "user_id",
+          profiles.map((player) => player.id),
+        )
+    : { data: [], error: null };
+  if (membershipsError) throw new Error("Could not load crew memberships.");
+  const crewByUser = new Map(
+    memberships.map((membership) => [membership.user_id, membership.crew_id]),
+  );
+  const profilesByCrew = new Map<string, Profile[]>();
+  for (const player of profiles) {
+    const crewId = crewByUser.get(player.id) || "unassigned";
+    profilesByCrew.set(crewId, [...(profilesByCrew.get(crewId) || []), player]);
+  }
+  const activeInvitations = inviteResult.data.filter(
+    (invitation) =>
+      !invitation.revoked_at &&
+      !(invitation.expires_at && expired(invitation.expires_at)) &&
+      invitation.use_count < invitation.max_uses,
+  );
   return (
     <AppShell profile={profile}>
       <PageIntro
@@ -74,22 +98,16 @@ export default async function AdminPage({
       <section className="admin-section">
         <h2>Recent invitations</h2>
         <p>
-          Showing the latest 50 invitations. Links are only displayed when
-          created.
+          Showing active invitations from the latest 50. Links are only
+          displayed when created.
         </p>
-        {inviteResult.data.map((i) => (
+        {!activeInvitations.length && <p>No active invitations.</p>}
+        {activeInvitations.map((i) => (
           <article className="admin-card invitation-row" key={i.id}>
             <div>
               <b>{crews.find((c) => c.id === i.crew_id)?.name || "Crew"}</b>
               <p>
-                {i.use_count} of {i.max_uses} players joined ·{" "}
-                {i.revoked_at
-                  ? "Revoked"
-                  : i.expires_at && expired(i.expires_at)
-                    ? "Expired"
-                    : i.use_count >= i.max_uses
-                      ? "Used up"
-                      : "Active"}
+                {i.use_count} of {i.max_uses} players joined · Active
                 {i.expires_at && ` · Expires ${i.expires_at.slice(0, 10)}`}
               </p>
             </div>
@@ -99,16 +117,24 @@ export default async function AdminPage({
       </section>
       <section className="admin-section">
         <h2>Players and admins</h2>
-        {profiles.map((p) => (
-          <article className="admin-card" key={p.id}>
+        {[...profilesByCrew.entries()].map(([crewId, crewProfiles]) => (
+          <div key={crewId} className="admin-group">
             <h3>
-              {p.first_name} {p.last_name}
+              {crews.find((crew) => crew.id === crewId)?.name ||
+                "No crew assigned"}
             </h3>
-            <p>
-              {p.display_name} · {p.role}
-            </p>
-            <UserControls profile={p} self={p.id === profile.id} />
-          </article>
+            {crewProfiles.map((p) => (
+              <article className="admin-card" key={p.id}>
+                <h3>
+                  {p.first_name} {p.last_name}
+                </h3>
+                <p>
+                  {p.display_name} · {p.role}
+                </p>
+                <UserControls profile={p} self={p.id === profile.id} />
+              </article>
+            ))}
+          </div>
         ))}
         <nav className="pagination" aria-label="Players pages">
           {page > 1 && <Link href={`/admin?page=${page - 1}`}>← Previous</Link>}

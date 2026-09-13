@@ -95,8 +95,8 @@ begin
     raise exception 'Invitation is invalid, expired, or already used';
   end if;
   select * into strict crew from public.crews where id = invitation.crew_id;
-  insert into public.profiles (id, first_name, last_name)
-    values (new.id, given_name, family_name) returning * into profile;
+  insert into public.profiles (id, first_name, last_name, favorite_color)
+    values (new.id, given_name, family_name, coalesce(new.raw_user_meta_data ->> 'favorite_color', 'blue')) returning * into profile;
   insert into public.crew_members (crew_id, user_id) values (crew.id, new.id);
   insert into public.ledger_enrollments (user_id, player_id, crew_public_id, display_name, starting_balance_cents)
     values (new.id, profile.public_player_id, crew.public_code, profile.display_name, crew.starting_balance_cents);

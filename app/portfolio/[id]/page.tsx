@@ -15,9 +15,24 @@ export default async function HoldingPage({
   const data = await portfolio(profile.public_player_id);
   const h = data?.holdings.find((x) => x.id === id);
   if (!data || !h) notFound();
-  const history = await readQuery(
+  const history = await readQuery<{
+    recorded_date: string;
+    market_value_cents: number;
+  }>(
     `SELECT recorded_date,market_value_cents FROM holding_price_history WHERE holding_id='${id}' ORDER BY recorded_date DESC`,
   );
+  const chartValues = [
+    {
+      date: h.acquired_at
+        ? String(h.acquired_at).slice(0, 10)
+        : String(history[history.length - 1]?.recorded_date ?? ""),
+      cents: h.cost_basis_cents,
+    },
+    ...[...history].reverse().map((p: any) => ({
+      date: String(p.recorded_date).slice(0, 10),
+      cents: Number(p.market_value_cents),
+    })),
+  ];
   return (
     <AppShell active="portfolio" profile={profile}>
       <Link className="text-link" href="/">
@@ -90,14 +105,7 @@ export default async function HoldingPage({
       </section>
       <section className="chart-card">
         <h2>Recorded value history</h2>
-        {history.length > 1 && (
-          <HistoryChart
-            values={[...history].reverse().map((p: any) => ({
-              date: String(p.recorded_date),
-              cents: Number(p.market_value_cents),
-            }))}
-          />
-        )}
+        {chartValues.length > 1 && <HistoryChart values={chartValues} />}
         {history.length ? (
           <ul>
             {history.map((point: any) => (

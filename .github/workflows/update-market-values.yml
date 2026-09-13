@@ -1,0 +1,50 @@
+name: Update market and portfolio values
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub Actions schedules are expressed in UTC: Sunday at 12:00 UTC.
+    - cron: "0 12 * * 0"
+
+concurrency:
+  group: weekly-market-value-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Update Pokémon card values
+        run: node scripts/update-pokemon-values.mjs
+        env:
+          DOLT_DATABASE_URL: ${{ secrets.DOLT_DATABASE_URL }}
+          OPEN_EXCHANGE_RATES_APP_ID: ${{ secrets.OPEN_EXCHANGE_RATES_APP_ID }}
+          POKEMON_API_KEY: ${{ secrets.POKEMON_API_KEY }}
+
+      - name: Update stock values
+        run: node scripts/update-stock-values.mjs
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_API_SECRET: ${{ secrets.ALPACA_API_SECRET }}
+          DOLT_DATABASE_URL: ${{ secrets.DOLT_DATABASE_URL }}
+
+      - name: Update sports card values
+        run: node scripts/update-sports-values.mjs
+        env:
+          CARDSIGHT_API_KEY: ${{ secrets.CARDSIGHT_API_KEY }}
+          DOLT_DATABASE_URL: ${{ secrets.DOLT_DATABASE_URL }}
+
+      - name: Rebuild portfolio snapshots
+        run: node scripts/update-portfolio-values.mjs
+        env:
+          DOLT_DATABASE_URL: ${{ secrets.DOLT_DATABASE_URL }}

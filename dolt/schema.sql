@@ -31,6 +31,7 @@ create table if not exists trades (
   player_id varchar(36) not null,
   asset_type enum('stock','pokemon_card','sports_card') not null,
   asset_public_id varchar(120) not null,
+  display_name varchar(160) not null,
   side enum('buy','sell') not null,
   quantity decimal(18,6) not null,
   price_cents bigint not null,

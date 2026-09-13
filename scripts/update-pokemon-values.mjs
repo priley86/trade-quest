@@ -6,7 +6,23 @@ try {
     if (m && !process.env[m[1]]) process.env[m[1]] = m[2];
   }
 } catch {}
-const api = "https://api.pokemontcg.io/v2/cards";
+const api = "https://cardmarket-api-tcg.p.rapidapi.com/cards";
+const apiHost = "pokemon-tcg-api.p.rapidapi.com";
+const fxResponse = process.env.OPEN_EXCHANGE_RATES_APP_ID
+  ? await fetch(
+      `https://openexchangerates.org/api/latest.json?app_id=${encodeURIComponent(process.env.OPEN_EXCHANGE_RATES_APP_ID)}`,
+    )
+  : null;
+const fxRates = fxResponse?.ok ? ((await fxResponse.json()).rates ?? {}) : {};
+function toUsd(value, currency = "USD") {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || currency.toUpperCase() === "USD")
+    return amount;
+  const rate = Number(fxRates[currency.toUpperCase()]);
+  if (rate > 0) return amount / rate;
+  const fallback = { EUR: 1.1, GBP: 1.28, CAD: 0.73, AUD: 0.66 };
+  return amount * (fallback[currency.toUpperCase()] ?? 1);
+}
 const db = await mysql.createConnection({
   uri:
     process.env.DOLT_DATABASE_URL || "mysql://root@127.0.0.1:3307/tradequest",
@@ -22,17 +38,22 @@ console.log(`[pokemon-values] found ${holdings.length} Pokémon holding(s)`);
 let updated = 0,
   failed = 0,
   skipped = 0;
-for (let start = 0; start < holdings.length; start += 10) {
-  const batch = holdings.slice(start, start + 10);
-  const q = batch
+for (let start = 0; start < holdings.length; start += 20) {
+  const batch = holdings.slice(start, start + 20);
+  const ids = batch.map((h) => h.asset_public_id).join(",");
+  /*
     .map((h) => `id:\"${h.asset_public_id.replace(/\"/g, '\\"')}\"`)
-    .join(" OR ");
+    .join(" OR "); */
   try {
-    const r = await fetch(`${api}?q=${encodeURIComponent(q)}&pageSize=10`, {
-      headers: process.env.POKEMON_TCG_API_KEY
-        ? { "X-Api-Key": process.env.POKEMON_TCG_API_KEY }
-        : undefined,
-    });
+    const r = await fetch(
+      `${api}?ids=${encodeURIComponent(ids)}&per_page=100`,
+      {
+        headers: {
+          "x-rapidapi-key": process.env.POKEMON_API_KEY || "",
+          "x-rapidapi-host": apiHost,
+        },
+      },
+    );
     if (!r.ok) {
       console.error(
         `[pokemon-values] BATCH FAILED (${batch.length} holdings): API HTTP ${r.status}`,
@@ -40,14 +61,10 @@ for (let start = 0; start < holdings.length; start += 10) {
       failed += batch.length;
       continue;
     }
-    const cards = new Map((await r.json()).data.map((c) => [c.id, c]));
+    const cards = new Map((await r.json()).data.map((c) => [String(c.id), c]));
     for (const h of batch) {
       const c = cards.get(h.asset_public_id),
-        p =
-          c &&
-          Object.values(c.tcgplayer?.prices || {}).find(
-            (x) => x.market != null,
-          );
+        p = c && c.prices?.tcg_player?.market_price;
       if (!p) {
         console.warn(
           `[pokemon-values] SKIPPED ${h.id} (${h.asset_public_id}): no market price`,
@@ -55,7 +72,8 @@ for (let start = 0; start < holdings.length; start += 10) {
         skipped++;
         continue;
       }
-      const cents = Math.round(p.market * 100);
+      const currency = c.prices.tcg_player.currency ?? c.currency ?? "USD";
+      const cents = Math.round(toUsd(p, currency) * 100);
       await db.query("UPDATE holdings SET current_value_cents=? WHERE id=?", [
         cents,
         h.id,

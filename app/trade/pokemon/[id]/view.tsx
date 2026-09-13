@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { PokemonProduct } from "../../../../lib/tcgplayer";
 import { money } from "../../../../lib/validation";
 import { buyPokemonCard } from "../actions";
+import { HistoryChart } from "../../../portfolio/history-chart";
 
 export function PokemonDetail({ product }: { product: PokemonProduct }) {
   const [message, setMessage] = useState("");
@@ -12,88 +13,101 @@ export function PokemonDetail({ product }: { product: PokemonProduct }) {
     setMessage(result.message || "");
   }
   return (
-    <section className="pokemon-detail">
-      <div className="detail-art">
-        <img src={product.imageUrl} alt="" />
-      </div>
-      <div>
-        <span className="eyebrow">Near Mint · Normal</span>
-        <h1>{product.name}</h1>
-        <p className="detail-price">{money(product.nearMintNormalCents)}</p>
-        <p>Pokémon TCG API market price used in TradeQuest</p>
-        <button className="primary-button" onClick={buy}>
-          Buy this card
-        </button>
-        {message && (
-          <p className="form-status" role="status">
-            {message}
-          </p>
-        )}
-      </div>
-      <div className="price-history">
-        <h2>Recent snapshot</h2>
-        <dl className="snapshot-grid">
-          <div>
-            <dt>Market price</dt>
-            <dd>{money(product.marketPriceCents)}</dd>
-          </div>
-          <div>
-            <dt>Low sale price</dt>
-            <dd>{money(product.lowCents)}</dd>
-          </div>
-          <div>
-            <dt>Mid sale price</dt>
-            <dd>{money(product.midCents ?? product.marketPriceCents)}</dd>
-          </div>
-          <div>
-            <dt>High sale price</dt>
-            <dd>{money(product.highCents)}</dd>
-          </div>
-        </dl>{" "}
-        {product.cardmarket && (
-          <>
-            <h2>Cardmarket data</h2>
-            <dl className="snapshot-grid">
-              <div>
-                <dt>Trend price</dt>
-                <dd>
-                  {money(Math.round(product.cardmarket.trendPrice * 100))}
-                </dd>
-              </div>
-              <div>
-                <dt>Avg. 1 day price</dt>
-                <dd>{money(Math.round(product.cardmarket.avg1 * 100))}</dd>
-              </div>
-              <div>
-                <dt>Avg. 7 day price</dt>
-                <dd>{money(Math.round(product.cardmarket.avg7 * 100))}</dd>
-              </div>
-              <div>
-                <dt>Avg. 30 day price</dt>
-                <dd>{money(Math.round(product.cardmarket.avg30 * 100))}</dd>
-              </div>
-            </dl>
-          </>
-        )}
-        <div className="detail-links">
-          <a
-            className="text-link"
-            href={product.url}
-            target="_blank"
-            rel="noreferrer"
-          >
-            View on TCGplayer ↗
-          </a>
-          <a
-            className="text-link"
-            href={product.apiUrl}
-            target="_blank"
-            rel="noreferrer"
-          >
-            View Pokémon TCG API data ↗
-          </a>
+    <>
+      <section className="pokemon-detail">
+        <div className="detail-art">
+          <img src={product.imageUrl} alt="" />
         </div>
+        <div>
+          <span className="eyebrow">Near Mint · Normal</span>
+          <h1>{product.name}</h1>
+          <p className="detail-price">{money(product.nearMintNormalCents)}</p>
+          <p>Pokémon TCG API market price used in TradeQuest</p>
+          <button className="primary-button" onClick={buy}>
+            Buy this card
+          </button>
+          {message && (
+            <p className="form-status" role="status">
+              {message}
+            </p>
+          )}
+          <dl className="snapshot-grid">
+            <div>
+              <dt>Card code</dt>
+              <dd>{product.cardCodeNumber || "—"}</dd>
+            </div>
+            <div>
+              <dt>Card number</dt>
+              <dd>{product.cardNumber ?? "—"}</dd>
+            </div>
+            <div>
+              <dt>Episode</dt>
+              <dd>{product.episodeName || "—"}</dd>
+            </div>
+            <div>
+              <dt>Released</dt>
+              <dd>{product.episodeReleasedAt || "—"}</dd>
+            </div>
+            <div>
+              <dt>Series</dt>
+              <dd>{product.episodeSeriesName || "—"}</dd>
+            </div>
+            <div>
+              <dt>Rarity</dt>
+              <dd>{product.rarity || "—"}</dd>
+            </div>
+          </dl>
+        </div>
+        <div className="price-history">
+          {product.cardmarket && (
+            <>
+              <h2>Cardmarket data</h2>
+              <dl className="snapshot-grid">
+                <div>
+                  <dt>Trend price</dt>
+                  <dd>
+                    {money(Math.round(product.cardmarket.lowestNearMint * 100))}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Avg. 7 day price</dt>
+                  <dd>{money(Math.round(product.cardmarket.avg7 * 100))}</dd>
+                </div>
+                <div>
+                  <dt>Avg. 30 day price</dt>
+                  <dd>{money(Math.round(product.cardmarket.avg30 * 100))}</dd>
+                </div>
+              </dl>
+            </>
+          )}
+        </div>
+      </section>
+      {product.history.length > 1 && (
+        <section className="chart-card">
+          <h2>1-year price history</h2>
+          <HistoryChart values={product.history} />
+        </section>
+      )}
+      <div className="detail-links">
+        <a
+          className="text-link"
+          href={product.links.tcgplayer ?? product.url}
+          target="_blank"
+          rel="noreferrer"
+        >
+          View on TCGplayer ↗
+        </a>
+        {product.links.cardmarket && (
+          <a
+            className="text-link"
+            href={product.links.cardmarket}
+            target="_blank"
+            rel="noreferrer"
+          >
+            View Cardmarket data ↗
+          </a>
+        )}
       </div>
-    </section>
+    </>
   );
 }

@@ -24,6 +24,7 @@ export const demoPlayers: Portfolio[] = [
       },
     ],
     snapshots: [],
+    trades: [],
   },
   {
     player_id: "jamie",
@@ -62,6 +63,7 @@ export const demoPlayers: Portfolio[] = [
         total_value_cents: value,
       }),
     ),
+    trades: [],
   },
   {
     player_id: "leo",
@@ -79,5 +81,6 @@ export const demoPlayers: Portfolio[] = [
       },
     ],
     snapshots: [],
+    trades: [],
   },
 ];

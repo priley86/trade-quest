@@ -1,6 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { login, signup, verifyPhone, resendPhone } from "./actions";
+import { ColorPicker } from "../color-picker";
 
 function PhoneConfirmation({ phone }: { phone: string }) {
   const [state, action, pending] = useActionState(verifyPhone, {});
@@ -71,6 +72,10 @@ export function SignupForm({
               />
             </label>
           </div>
+          <label>
+            Favorite color
+            <ColorPicker />
+          </label>
           <label>
             Email
             <input

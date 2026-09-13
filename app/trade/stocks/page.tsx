@@ -46,6 +46,11 @@ export default async function StocksPage({
           ))}
         </section>
       )}
+      <p className="trade-post-back">
+        <Link className="text-link" href="/trade">
+          ← Back to Trading Post
+        </Link>
+      </p>
     </AppShell>
   );
 }

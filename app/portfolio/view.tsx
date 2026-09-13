@@ -4,19 +4,34 @@ import { money, returnPercent } from "../../lib/validation";
 import type { Portfolio, Snapshot } from "../../lib/dolt";
 import { SellButton } from "./sell";
 
-function History({ snapshots }: { snapshots: Snapshot[] }) {
-  if (snapshots.length < 2)
+function History({
+  snapshots,
+  startingBalanceCents,
+}: {
+  snapshots: Snapshot[];
+  startingBalanceCents: number;
+}) {
+  const points = snapshots.length
+    ? [
+        {
+          snapshot_date: previousDay(snapshots[0].snapshot_date),
+          total_value_cents: startingBalanceCents,
+        },
+        ...snapshots,
+      ]
+    : snapshots;
+  if (points.length < 2)
     return (
       <section className="chart-card">
         <h2>Treasure over time</h2>
         <p>Your chart will appear after at least two daily value checks.</p>
       </section>
     );
-  const values = snapshots.map((s) => s.total_value_cents);
+  const values = points.map((s) => s.total_value_cents);
   const min = Math.min(...values),
     max = Math.max(...values);
   const spread = Math.max(max - min, 100);
-  const points = values
+  const chartPoints = values
     .map(
       (n, i) =>
         `${34 + (i / (values.length - 1)) * 732},${170 - ((n - min) / spread) * 140}`,
@@ -42,7 +57,7 @@ function History({ snapshots }: { snapshots: Snapshot[] }) {
           strokeDasharray="4 6"
         />
         <polyline
-          points={points}
+          points={chartPoints}
           fill="none"
           stroke="#087eaf"
           strokeWidth="4"
@@ -58,17 +73,17 @@ function History({ snapshots }: { snapshots: Snapshot[] }) {
       </svg>
       <div className="history-labels">
         <span>
-          {String(snapshots[0].snapshot_date).slice(0, 10)} · {money(values[0])}
+          {String(points[0].snapshot_date).slice(0, 10)} · {money(values[0])}
         </span>
         <span>
-          {String(snapshots[snapshots.length - 1].snapshot_date).slice(0, 10)} ·{" "}
+          {String(points[points.length - 1].snapshot_date).slice(0, 10)} ·{" "}
           {money(values[values.length - 1])}
         </span>
       </div>
       <details>
         <summary>See daily values</summary>
         <ul>
-          {[...snapshots].reverse().map((s) => (
+          {[...points].reverse().map((s) => (
             <li key={String(s.snapshot_date)}>
               {String(s.snapshot_date).slice(0, 10)}:{" "}
               {money(s.total_value_cents)}
@@ -79,6 +94,12 @@ function History({ snapshots }: { snapshots: Snapshot[] }) {
     </section>
   );
 }
+function previousDay(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+}
 export function PortfolioView({
   data,
   firstName,
@@ -86,6 +107,7 @@ export function PortfolioView({
   crewCode,
   own = true,
   base = "",
+  startingBalanceCents = 100000,
 }: {
   data: Portfolio;
   firstName: string;
@@ -93,6 +115,7 @@ export function PortfolioView({
   crewCode: string;
   own?: boolean;
   base?: string;
+  startingBalanceCents?: number;
 }) {
   const invested = data.holdings.reduce((n, h) => n + h.current_value_cents, 0);
   return (
@@ -137,7 +160,10 @@ export function PortfolioView({
           icon="🚀"
         />
       </section>
-      <History snapshots={data.snapshots} />
+      <History
+        snapshots={data.snapshots}
+        startingBalanceCents={startingBalanceCents}
+      />
       {own && (
         <section className="action-grid">
           <Link className="quest-button trade" href={`${base}/trade`}>

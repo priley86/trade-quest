@@ -1,7 +1,15 @@
 import "server-only";
+import fx from "money";
 export type PokemonProduct = {
   id: string;
   name: string;
+  cardCodeNumber: string;
+  cardNumber: number | null;
+  episodeName: string | null;
+  episodeReleasedAt: string | null;
+  episodeSeriesName: string | null;
+  rarity: string | null;
+  links: { tcgplayer: string | null; cardmarket: string | null };
   url: string;
   apiUrl: string;
   imageUrl: string;
@@ -10,224 +18,195 @@ export type PokemonProduct = {
   lowCents: number;
   midCents?: number;
   highCents: number;
-  cardmarket?: {
-    trendPrice: number;
-    avg1: number;
-    avg7: number;
-    avg30: number;
-  };
-  totalSold: number | null;
-  dailySold: number | null;
-  history: { label: string; cents: number }[];
+  cardmarket?: { lowestNearMint: number; avg30: number; avg7: number };
+  ebay?: { grader: string; cents: number }[];
+  totalSold: null;
+  dailySold: null;
+  history: { date: string; cents: number }[];
 };
-const base = "https://api.pokemontcg.io/v2/cards";
-const fallback: PokemonProduct[] = [
-  {
-    id: "xy8-48",
-    name: "Pikachu · XY Breakthrough",
-    url: "https://www.tcgplayer.com/product/107167/pokemon-xy-breakthrough-pikachu?page=1&Language=English&Printing=Normal",
-    apiUrl: `${base}/xy8-48`,
-    imageUrl: "https://images.pokemontcg.io/xy8/48.png",
-    marketPriceCents: 109,
-    nearMintNormalCents: 109,
-    lowCents: 75,
-    midCents: 105,
-    highCents: 199,
-    totalSold: null,
-    dailySold: null,
-    history: [],
-  },
-];
-type Card = {
-  id: string;
-  name: string;
-  images?: { small?: string; large?: string };
-  tcgplayer?: {
-    url?: string;
-    prices?: Record<
-      string,
-      { market?: number; mid?: number; low?: number; high?: number }
-    >;
-  };
-  cardmarket?: {
-    prices?: {
-      trendPrice?: number;
-      avg1?: number;
-      avg7?: number;
-      avg30?: number;
+const base = "https://cardmarket-api-tcg.p.rapidapi.com",
+  host = "pokemon-tcg-api.p.rapidapi.com";
+const searchCache = new Map<string, PokemonProduct[]>(),
+  productCache = new Map<string, PokemonProduct>();
+let ratesPromise: Promise<Record<string, number>> | undefined;
+async function amount(v: any, currency = "USD") {
+  const n =
+    typeof v === "number" ? v : Number(v?.value ?? v?.amount ?? v?.price);
+  if (!Number.isFinite(n) || currency.toUpperCase() === "USD") return n;
+  if (!ratesPromise)
+    ratesPromise = fetch(
+      `https://openexchangerates.org/api/latest.json?app_id=${encodeURIComponent(process.env.OPEN_EXCHANGE_RATES_APP_ID ?? "")}`,
+      { next: { revalidate: 3600 } },
+    )
+      .then((r) =>
+        r.ok ? (r.json() as Promise<{ rates?: Record<string, number> }>) : {},
+      )
+      .then((j) => (j as { rates?: Record<string, number> }).rates ?? {})
+      .catch(() => ({}));
+  fx.base = "USD";
+  fx.rates = await ratesPromise;
+  const code = currency.toUpperCase();
+  const rate = fx.rates[code];
+  if (!rate) {
+    const fallback: Record<string, number> = {
+      EUR: 1.1,
+      GBP: 1.28,
+      CAD: 0.73,
+      AUD: 0.66,
     };
-  };
-};
-function map(c: Card): PokemonProduct {
-  const entries = Object.entries(c.tcgplayer?.prices || {}),
-    normal =
-      entries.find(([k]) => /normal/i.test(k) && /market/i.test(k))?.[1] ||
-      entries.find(([, v]) => v.market != null)?.[1] ||
-      {},
-    cents = Math.round((normal.market || 0) * 100),
-    cm = c.cardmarket?.prices;
+    return n * (fallback[code] ?? 1);
+  }
+  try {
+    return fx.convert(n, { from: code, to: "USD" });
+  } catch {
+    return n;
+  }
+}
+async function map(c: any): Promise<PokemonProduct | null> {
+  const market = c?.prices?.tcg_player?.market_price;
+  if (market == null) return null;
+  const cur = c.prices.tcg_player.currency ?? c.currency ?? "USD",
+    cm = c.cardmarket ?? {},
+    cc = cm.currency ?? c.currency ?? "USD",
+    m = Math.round((await amount(market, cur)) * 100);
   return {
-    id: c.id,
+    id: String(c.id),
     name: c.name,
+    cardCodeNumber: c.card_code_number ?? "",
+    cardNumber: c.card_number ?? null,
+    episodeName: c.episode?.name ?? null,
+    episodeReleasedAt: c.episode?.released_at ?? null,
+    episodeSeriesName: c.episode?.series?.name ?? null,
+    rarity: c.rarity ?? null,
+    links: {
+      tcgplayer: c.links?.tcgplayer ?? null,
+      cardmarket: c.links?.cardmarket ?? null,
+    },
     url:
-      c.tcgplayer?.url ||
+      c.url ??
       `https://www.tcgplayer.com/search/pokemon/product?q=${encodeURIComponent(c.name)}`,
-    apiUrl: `${base}/${c.id}`,
-    imageUrl: c.images?.large || c.images?.small || "/pokeball.svg",
-    marketPriceCents: cents,
-    nearMintNormalCents: cents,
-    lowCents: Math.round((normal.low || normal.market || 0) * 100),
-    midCents: Math.round((normal.mid || normal.market || 0) * 100),
-    highCents: Math.round((normal.high || normal.market || 0) * 100),
+    apiUrl: `${base}/cards/${c.id}`,
+    imageUrl: c.image ?? "/pokeball.svg",
+    marketPriceCents: m,
+    nearMintNormalCents: m,
+    lowCents: m,
+    midCents: m,
+    highCents: m,
     cardmarket:
-      cm?.trendPrice != null &&
-      cm.avg1 != null &&
-      cm.avg7 != null &&
-      cm.avg30 != null
+      cm.lowest_near_mint != null &&
+      cm["30d_average"] != null &&
+      cm["7d_average"] != null
         ? {
-            trendPrice: cm.trendPrice,
-            avg1: cm.avg1,
-            avg7: cm.avg7,
-            avg30: cm.avg30,
+            lowestNearMint: await amount(cm.lowest_near_mint, cc),
+            avg30: await amount(cm["30d_average"], cc),
+            avg7: await amount(cm["7d_average"], cc),
           }
         : undefined,
+    ebay: Object.entries(c.prices?.ebay?.graded ?? {}).map(
+      async ([grader, grades]: [string, any]) => ({
+        grader: grader.toUpperCase(),
+        cents: Math.round(
+          (await amount(grades?.["10"]?.median_price, c.prices.ebay.currency)) *
+            100,
+        ),
+      }),
+    ).length
+      ? await Promise.all(
+          Object.entries(c.prices?.ebay?.graded ?? {}).map(
+            async ([grader, grades]: [string, any]) => ({
+              grader: grader.toUpperCase(),
+              cents: Math.round(
+                (await amount(
+                  grades?.["10"]?.median_price,
+                  c.prices.ebay.currency,
+                )) * 100,
+              ),
+            }),
+          ),
+        ).then((items) => items.filter((item) => item.cents > 0))
+      : undefined,
     totalSold: null,
     dailySold: null,
     history: [],
   };
 }
 async function request(path: string) {
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const r = await fetch(path, {
-      headers: process.env.POKEMON_TCG_API_KEY
-        ? { "X-Api-Key": process.env.POKEMON_TCG_API_KEY }
-        : undefined,
-      cache: "no-store",
-      signal: AbortSignal.timeout(10000),
-    });
-    if (r.ok) {
-      try {
-        return await r.json();
-      } catch {
-        return null;
-      }
-    }
-    if (r.status === 429) {
-      const retry = Number(r.headers.get("retry-after"));
-      await new Promise((x) =>
-        setTimeout(
-          x,
-          Number.isFinite(retry) && retry > 0
-            ? retry * 1000
-            : 1500 * (attempt + 1),
-        ),
-      );
-      continue;
-    }
-    return null;
-  }
-  return null;
-}
-const searchCache = new Map<string, PokemonProduct[]>();
-const productCache = new Map<string, PokemonProduct>();
-function scrape(html: string): PokemonProduct[] {
-  const out: PokemonProduct[] = [];
-  for (const m of html.matchAll(
-    /href="([^"]*product\/(\d+)[^"]*)"[\s\S]{0,5000}?(?:productName|name)[^>]*>([^<]{3,120})[\s\S]{0,1500}?(?:market price|marketPrice)[^$]*\$([\d,.]+)/gi,
-  )) {
-    const [, href, id, n, price] = m;
-    const cents = Math.round(Number(price.replace(/,/g, "")) * 100);
-    if (!cents || out.some((x) => x.id === id)) continue;
-    out.push({
-      id,
-      name: n.trim(),
-      url: href.startsWith("http") ? href : `https://www.tcgplayer.com${href}`,
-      apiUrl: `${base}/${id}`,
-      imageUrl: "/pokeball.svg",
-      marketPriceCents: cents,
-      nearMintNormalCents: cents,
-      lowCents: cents,
-      highCents: cents,
-      totalSold: null,
-      dailySold: null,
-      history: [],
-    });
-  }
-  return out;
+  const r = await fetch(path, {
+    headers: {
+      "X-RapidAPI-Key": process.env.POKEMON_API_KEY ?? "",
+      "X-RapidAPI-Host": host,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!r.ok) return null;
+  return r.json();
 }
 export async function searchPokemon(query: string, page = 1, refresh?: string) {
-  const raw = query.trim();
-  if (!raw)
+  const q = query.trim();
+  if (!q)
     return {
       products: [],
       page: 1,
       totalPages: 1,
-      source: "Pokemon TCG API results",
+      source: "Search for a Pokémon card",
     };
-  const q = raw.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim(),
-    apiName = q.split(" ")[0],
-    cacheKey = refresh ? `${q}:${refresh}` : q;
-  try {
-    let all = searchCache.get(cacheKey) || [];
-    if (!all.length) {
-      const collect = (j: any, into: PokemonProduct[], seen: Set<string>) => {
-        for (const card of (j?.data || []) as Card[])
-          if (!seen.has(card.id)) {
-            seen.add(card.id);
-            try {
-              into.push(map(card));
-            } catch {}
-          }
-      };
-      const full = await request(
-        `${base}?q=${encodeURIComponent(q)}&page=1&pageSize=50`,
-      );
-      const seen = new Set<string>();
-      const fullItems: PokemonProduct[] = [];
-      collect(full, fullItems, seen);
-      const matches = fullItems.filter((p) =>
-        p.name.toLowerCase().includes(q.toLowerCase()),
-      );
-      if (matches.length) all = matches;
-      else {
-        all = fullItems;
-        const named = await request(
-          `${base}?q=${encodeURIComponent(`name:${apiName}`)}&page=1&pageSize=50`,
-        );
-        collect(named, all, seen);
-      }
-    }
-    if (all.length) searchCache.set(cacheKey, all);
-    all.forEach((p) => productCache.set(p.id, p));
-    const products = all.slice(
-      (Math.max(1, page) - 1) * 10,
-      Math.max(1, page) * 10,
+  const key = refresh ? `${q}:${refresh}` : q;
+  let all = searchCache.get(key);
+  if (!all) {
+    const j = await request(
+      `${base}/cards?search=${encodeURIComponent(q)}&sort=relevance&per_page=100`,
     );
-    if (products.length)
-      return {
-        products,
-        page,
-        totalPages: Math.min(5, Math.max(1, Math.ceil(all.length / 10))),
-        source: "Pokemon TCG API results",
-      };
-  } catch {}
+    const cards = Array.isArray(j?.data)
+      ? j.data
+      : Array.isArray(j?.data?.data)
+        ? j.data.data
+        : Array.isArray(j?.results)
+          ? j.results
+          : [];
+    all = (await Promise.all(cards.map(map))).filter(
+      Boolean,
+    ) as PokemonProduct[];
+    searchCache.set(key, all);
+    all.forEach((p) => productCache.set(p.id, p));
+  }
+  const safe = Math.max(1, page);
   return {
-    products: [],
-    page,
-    totalPages: 1,
-    source: "No Pokemon TCG API results loaded. Try searching again.",
+    products: all.slice((safe - 1) * 10, safe * 10),
+    page: safe,
+    totalPages: Math.max(1, Math.ceil(all.length / 10)),
+    source: all.length
+      ? "Pokemon API results"
+      : "No matching cards with a TCGplayer market price",
   };
 }
 export async function getPokemonProduct(id: string) {
-  const cached = productCache.get(id);
-  if (cached) return cached;
-  try {
-    const j = await request(`${base}/${encodeURIComponent(id)}`);
-    if (j?.data) {
-      const p = map(j.data);
-      productCache.set(id, p);
-      return p;
-    }
-  } catch {}
-  return fallback.find((p) => p.id === id) || null;
+  let p: PokemonProduct | null = productCache.get(id) ?? null;
+  if (!p) {
+    const j = await request(`${base}/cards/${encodeURIComponent(id)}`);
+    p = await map(j?.data ?? j);
+    if (p) productCache.set(id, p);
+  }
+  if (!p) return null;
+  const end = new Date(),
+    start = new Date(end);
+  start.setFullYear(end.getFullYear() - 1);
+  const j = await request(
+    `${base}/history-prices?id=${encodeURIComponent(id)}&lang=en&date_from=${start.toISOString().slice(0, 10)}&date_to=${end.toISOString().slice(0, 10)}&sort=desc`,
+  );
+  const historyEntries = Object.entries(j?.data ?? {});
+  p.history = (
+    await Promise.all(
+      historyEntries.map(async ([date, v]: [string, any]) => ({
+        date,
+        cents: Math.round(
+          (await amount(v.tcg_player_market, v.currency ?? "USD")) * 100,
+        ),
+      })),
+    )
+  )
+    .filter((x) => x.cents > 0)
+    .reverse();
+  return p;
 }

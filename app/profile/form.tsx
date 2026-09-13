@@ -1,18 +1,38 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { updateProfile } from "./actions";
+import { ColorPicker } from "../color-picker";
 export function ProfileForm({
   firstName,
   lastName,
   contact,
+  favoriteColor,
 }: {
   firstName: string;
   lastName: string;
   contact: string;
+  favoriteColor: string;
 }) {
   const [state, action, pending] = useActionState(updateProfile, {});
+  const [selectedColor, setSelectedColor] = useState(favoriteColor);
+  useEffect(() => {
+    if (state.favoriteColor) {
+      setSelectedColor(state.favoriteColor);
+    }
+  }, [state.favoriteColor]);
   return (
-    <form action={action} className="stack-form">
+    <form
+      action={action}
+      className="stack-form"
+      onSubmit={(event) => {
+        const value = new FormData(event.currentTarget).get("favoriteColor");
+        if (typeof value === "string") setSelectedColor(value);
+      }}
+    >
+      <label>
+        Favorite color
+        <ColorPicker value={selectedColor} />
+      </label>
       <label>
         Username (email or phone)
         <input

@@ -54,16 +54,18 @@ The public `/demo` route works without database configuration and is clearly lab
 
 ## Implemented
 
-- Native Next.js App Router application, ready for Vercel configuration later
-- Crew-personalized signup, centered TradeQuest logo, white page backgrounds, and supplied favicon/nav assets
-- Email or phone + password signup/login, server-managed session cookies, refresh, logout, email callback, and phone verification
-- Atomic invitation validation, expiry/revocation/use limits, profile creation, and crew enrollment in Supabase
-- Admin-only crew creation/editing, invitation creation/revocation, user listing/deletion, and role changes
-- Player-specific cash, holdings, purchase return, history display, crew rankings, and member portfolio views
-- Local Dolt read/write connection; server-only DoltHub HTTP adapter for later deployment
+- Native Next.js App Router application with responsive, kid-friendly trading and portfolio views
+- Crew-personalized signup, invitations, admin controls, profile editing, favorite-color avatars, and crew leaderboards
+- Email or phone + password signup/login, server-managed sessions, refresh, logout, email confirmation, and phone verification
+- Player-specific cash, holdings, cost basis, gains/losses, portfolio history, transaction history, crew rankings, and member portfolio views
+- Separate trading flows for stocks, Pokémon cards, and sports cards, including search/detail pages and buy/sell actions
+- Market data integrations for Alpaca stocks, CardSight sports cards, and the RapidAPI Pokémon card service
+- Cardmarket price metrics, Pokémon one-year price history, currency conversion to USD, and per-holding recorded value history
 - Idempotent starting balance allocation; retrying never resets an existing balance
+- Weekly GitHub Actions valuation workflow for Pokémon, stocks, sports cards, and portfolio snapshots
+- Local Dolt/MySQL-compatible ledger for development and Aiven MySQL for the production ledger
 
-Trading category pages are intentionally placeholders. Search, buy/sell, price feeds, daily valuation jobs, and GitHub Actions are future work. The history chart appears after two daily snapshots exist; it does not manufacture performance data for new players.
+The portfolio history chart is based on trade dates and recorded market values. It includes the crew’s configured starting balance and does not manufacture performance data for new players.
 
 ## Data model
 
@@ -71,7 +73,7 @@ Supabase stores names, contact identities (in Auth), roles, crews, private membe
 
 Dolt stores only random public player IDs, generated explorer nicknames, public crew IDs, cash, holdings, trades, and snapshots. Real signup names and contact details are never copied there. Portfolio values and cost basis are total cents per holding, not per-unit prices. A player currently belongs to one crew.
 
-Only the server writes to the ledger. The local Dolt connection is for development; never expose the local root database port publicly. The future public DoltHub database remains readable by anyone. Deleting an account removes its private records and roster entry, but its anonymous versioned public ledger history remains.
+Only the server writes to the ledger. Dolt is used as the local MySQL-compatible database during development; never expose the local root database port publicly. Production uses an Aiven MySQL database rather than DoltHub. Deleting an account removes its private records and roster entry, but its anonymous public ledger history remains in the production database.
 
 ## Hosted setup later
 
@@ -86,17 +88,20 @@ Only the server writes to the ledger. The local Dolt connection is for developme
 
    Existing profiles can be promoted with `update public.profiles set role = 'admin' where id = 'AUTH-USER-UUID';`.
 
-4. Apply `dolt/schema.sql` to `priley86/trade-quest`. Set `DOLTHUB_DATABASE`, `DOLTHUB_BRANCH`, and the server-only `DOLTHUB_API_TOKEN`. **Unset `DOLT_DATABASE_URL`** to select the hosted HTTP adapter.
-5. Configure Supabase Auth Site URL to the deployed app origin. For email confirmation, set the Confirm signup email template link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}`. Enable confirmation and configure email delivery. Phone registration additionally needs phone Auth and SMS delivery configured.
-6. Import this GitHub repository into Vercel using its Next.js preset. No Cloudflare/Sites runtime is required.
+4. Create the production MySQL database in Aiven and apply `dolt/schema.sql` using its MySQL connection details. Set the server-only `DOLT_DATABASE_URL` to the Aiven connection URL. Despite the historical variable name, this is the production MySQL connection; Dolt is local-only.
+5. Configure the market-data secrets used by the weekly GitHub Action: `POKEMON_API_KEY`, `OPEN_EXCHANGE_RATES_APP_ID`, `ALPACA_API_KEY`, `ALPACA_API_SECRET`, and `CARDSIGHT_API_KEY`. Also set `DOLT_DATABASE_URL` as a GitHub Secret for the updater workflow.
+6. Configure Supabase Auth Site URL to the deployed app origin. For email confirmation, set the Confirm signup email template link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}`. Configure Supabase Auth SMTP to use Brevo as the email provider, then enable confirmation and configure email delivery. Phone registration additionally needs phone Auth and SMS delivery configured.
+7. Import this GitHub repository into Vercel using its Next.js preset. No Cloudflare/Sites runtime is required.
 
-The app uses Supabase’s [server-side session guidance](https://supabase.com/docs/guides/auth/server-side/creating-a-client) and [password authentication](https://supabase.com/docs/guides/auth/passwords), and DoltHub’s [HTTP SQL API](https://www.dolthub.com/docs/products/dolthub/api/v1alpha1/sql/).
+The app uses Supabase’s [server-side session guidance](https://supabase.com/docs/guides/auth/server-side/creating-a-client) and [password authentication](https://supabase.com/docs/guides/auth/passwords). Production database hosting is provided by Aiven MySQL; local development uses Dolt’s MySQL-compatible server.
 
 ## Basic checks
 
 ```bash
 npm run build
 npm run lint
+npm run format:check
+npm run typecheck
 ```
 
-No extensive automated test suite is included. Local services and the browser walkthrough above are the current development workflow.
+The weekly market-value workflow can also be run manually from GitHub Actions. No extensive automated test suite is included; local services and the browser walkthrough above are the current development workflow.

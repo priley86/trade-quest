@@ -44,6 +44,7 @@ export default async function LeaderboardPage() {
         <LeaderList
           players={players.map((p) => ({
             ...p,
+            favorite_color: p.favorite_color,
             total_value_cents: totals.get(p.player_id) ?? null,
           }))}
           ownId={profile.public_player_id}

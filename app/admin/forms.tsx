@@ -176,7 +176,7 @@ export function UserControls({
             <input type="hidden" name="id" value={profile.id} />
             <p>
               Permanently removes this player’s login, private profile, and crew
-              membership. Anonymous public game history remains on DoltHub.
+              membership. Private portfolio history remains in the game ledger.
             </p>
             <label>
               Type DELETE to confirm

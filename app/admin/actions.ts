@@ -184,7 +184,7 @@ export async function deleteUser(
     return {
       success: true,
       message:
-        "Account deleted. Its anonymous public ledger history remains on DoltHub.",
+        "Account deleted. Its private portfolio history remains in the game ledger.",
     };
   } catch (error) {
     return failure(error);

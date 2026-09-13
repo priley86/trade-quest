@@ -3,6 +3,7 @@ import { money } from "../../lib/validation";
 export type LeaderRow = {
   player_id: string;
   display_name: string;
+  favorite_color?: string;
   total_value_cents: number | null;
 };
 export function LeaderList({
@@ -39,7 +40,9 @@ export function LeaderList({
           <span className="rank">
             {p.total_value_cents === null ? "—" : `#${index + 1}`}
           </span>
-          <span className="avatar blue">{p.display_name[0]}</span>
+          <span className={`avatar ${p.favorite_color || "blue"}`}>
+            {p.display_name[0]}
+          </span>
           <b>
             {p.display_name}
             {p.player_id === ownId && <small> · You</small>}

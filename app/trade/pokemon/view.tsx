@@ -32,7 +32,9 @@ export async function PokemonBrowser({
             <div className="pokemon-image">
               <img src={p.imageUrl} alt="" />
             </div>
-            <h2>{p.name}</h2>
+            <h2>
+              {p.name} {p.cardCodeNumber && <small>#{p.cardCodeNumber}</small>}
+            </h2>
             <p>Market Price</p>
             <strong>{money(p.marketPriceCents)}</strong>
           </Link>
@@ -59,6 +61,11 @@ export async function PokemonBrowser({
           )}
         </nav>
       )}
+      <p className="trade-post-back">
+        <Link className="text-link" href="/trade">
+          ← Back to Trading Post
+        </Link>
+      </p>
     </>
   );
 }

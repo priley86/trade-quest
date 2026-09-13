@@ -52,16 +52,25 @@ export function AppShell({
         {profile ? (
           <details className="profile-menu">
             <summary>
-              <span className="avatar">{profile.first_name[0]}</span>
+              <span className={`avatar ${profile.favorite_color || "blue"}`}>
+                {profile.first_name[0]}
+              </span>
               <span className="profile-name">{profile.first_name}</span>
             </summary>
             <div className="profile-dropdown">
-              <Link href="/profile">My profile</Link>
+              <Link href="/profile">
+                <span aria-hidden="true">👤</span> My profile
+              </Link>
+              <Link href="/transactions">
+                <span aria-hidden="true">📜</span> Transaction history
+              </Link>
               {profile.role === "admin" && (
                 <Link href="/admin">Crew control center</Link>
               )}
               <form action={logout}>
-                <button className="text-button">Log out</button>
+                <button className="text-button">
+                  <span aria-hidden="true">↪</span> Log out
+                </button>
               </form>
             </div>
           </details>

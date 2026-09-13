@@ -11,6 +11,7 @@ export type Profile = {
   role: "player" | "admin";
   public_player_id: string;
   display_name: string;
+  favorite_color: string;
 };
 export type Crew = {
   id: string;
@@ -32,7 +33,7 @@ export const getViewer = cache(async () => {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(
-      "id,first_name,last_name,role,public_player_id,display_name,deletion_pending",
+      "id,first_name,last_name,role,public_player_id,display_name,favorite_color,deletion_pending",
     )
     .eq("id", user.id)
     .maybeSingle();

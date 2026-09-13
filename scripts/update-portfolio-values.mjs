@@ -20,11 +20,7 @@ for (const account of accounts) {
     let holdingsValue = 0;
     const day = new Date(row.d);
     for (const h of holdings) {
-      if (
-        new Date(h.acquired_at) > day &&
-        day.toISOString().slice(0, 10) < "2026-08-30"
-      )
-        continue;
+      if (new Date(h.acquired_at) > day) continue;
       const [[latest]] = await db.query(
         "SELECT market_value_cents FROM holding_price_history WHERE holding_id=? AND recorded_date<=? ORDER BY recorded_date DESC LIMIT 1",
         [h.id, row.d],
@@ -36,7 +32,7 @@ for (const account of accounts) {
       "SELECT COALESCE(SUM(CASE WHEN side=\'buy\' THEN -price_cents*quantity ELSE price_cents*quantity END),0) flow FROM trades WHERE player_id=? AND DATE(executed_at)<=?",
       [account.player_id, row.d],
     );
-    const cash = dayText < "2026-08-30" ? 100000 : Number(account.cash_cents);
+    const cash = 100000 + Number(flow.flow);
     if (dayText === new Date().toISOString().slice(0, 10)) {
       const [[live]] = await db.query(
         "SELECT COALESCE(SUM(current_value_cents),0) value FROM holdings WHERE player_id=?",

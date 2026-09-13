@@ -52,7 +52,7 @@ export async function buyPokemon(
       `INSERT INTO holdings (id,player_id,asset_type,asset_public_id,display_name,quantity,cost_basis_cents,current_value_cents,product_url,image_url,sport_segment,acquired_at) VALUES (${text(crypto.randomUUID())},${id},'pokemon_card',${text(product.id)},${text(product.name)},1,${price},${price},${text(product.url)},${text(product.imageUrl)},'',CURRENT_TIMESTAMP)`,
     );
     await conn.query(
-      `INSERT INTO trades (id,player_id,asset_type,asset_public_id,side,quantity,price_cents) VALUES (${text(crypto.randomUUID())},${id},'pokemon_card',${text(product.id)},'buy',1,${price})`,
+      `INSERT INTO trades (id,player_id,asset_type,asset_public_id,display_name,side,quantity,price_cents) VALUES (${text(crypto.randomUUID())},${id},'pokemon_card',${text(product.id)},${text(product.name)},'buy',1,${price})`,
     );
     await conn.commit();
   } catch (error) {
@@ -96,7 +96,7 @@ export async function buySports(
       `INSERT INTO holdings (id,player_id,asset_type,asset_public_id,display_name,quantity,cost_basis_cents,current_value_cents,product_url,image_url,sport_segment,acquired_at) VALUES (${t(crypto.randomUUID())},${id},'sports_card',${t(product.id)},${t(product.name)},1,${price},${price},${t(product.url)},${t(product.imageUrl)},${t(product.segmentName || "")},CURRENT_TIMESTAMP)`,
     );
     await conn.query(
-      `INSERT INTO trades (id,player_id,asset_type,asset_public_id,side,quantity,price_cents) VALUES (${t(crypto.randomUUID())},${id},'sports_card',${t(product.id)},'buy',1,${price})`,
+      `INSERT INTO trades (id,player_id,asset_type,asset_public_id,display_name,side,quantity,price_cents) VALUES (${t(crypto.randomUUID())},${id},'sports_card',${t(product.id)},${t(product.name)},'buy',1,${price})`,
     );
     await conn.commit();
   } catch (e) {
@@ -118,7 +118,7 @@ export async function sellHolding(playerId: string, holdingId: string) {
   try {
     await conn.beginTransaction();
     const [rows] = await conn.query<RowDataPacket[]>(
-      `SELECT current_value_cents,asset_type,asset_public_id,quantity FROM holdings WHERE id=${hid} AND player_id=${id} FOR UPDATE`,
+      `SELECT current_value_cents,asset_type,asset_public_id,display_name,quantity FROM holdings WHERE id=${hid} AND player_id=${id} FOR UPDATE`,
     );
     const h = rows[0];
     if (!h) throw new Error("That holding is no longer in your portfolio.");
@@ -127,7 +127,7 @@ export async function sellHolding(playerId: string, holdingId: string) {
       `UPDATE player_accounts SET cash_cents=cash_cents+${value} WHERE player_id=${id}`,
     );
     await conn.query(
-      `INSERT INTO trades (id,player_id,asset_type,asset_public_id,side,quantity,price_cents) VALUES (${sqlText(crypto.randomUUID())},${id},${sqlText(h.asset_type)},${sqlText(h.asset_public_id)},'sell',${Number(h.quantity)},${value})`,
+      `INSERT INTO trades (id,player_id,asset_type,asset_public_id,display_name,side,quantity,price_cents) VALUES (${sqlText(crypto.randomUUID())},${id},${sqlText(h.asset_type)},${sqlText(h.asset_public_id)},${sqlText(h.display_name)},'sell',${Number(h.quantity)},${value})`,
     );
     await conn.query(
       `DELETE FROM holdings WHERE id=${hid} AND player_id=${id}`,
@@ -151,8 +151,19 @@ export type Holding = {
   sport_segment?: string;
   product_url?: string;
   image_url?: string;
+  acquired_at?: string;
 };
 export type Snapshot = { snapshot_date: string; total_value_cents: number };
+export type Trade = {
+  id: string;
+  asset_type: "stock" | "pokemon_card" | "sports_card";
+  asset_public_id: string;
+  display_name?: string;
+  side: "buy" | "sell";
+  quantity: number;
+  price_cents: number;
+  executed_at: string;
+};
 export type Portfolio = {
   player_id: string;
   display_name: string;
@@ -160,6 +171,7 @@ export type Portfolio = {
   cash_cents: number;
   holdings: Holding[];
   snapshots: Snapshot[];
+  trades: Trade[];
 };
 export type Leader = {
   player_id: string;
@@ -207,12 +219,15 @@ export async function portfolio(playerId: string): Promise<Portfolio | null> {
     `SELECT player_id,display_name,crew_public_id,cash_cents FROM player_accounts WHERE player_id=${id}`,
   );
   if (!accounts[0]) return null;
-  const [holdings, snapshots] = await Promise.all([
+  const [holdings, snapshots, trades] = await Promise.all([
     readQuery<Holding>(
-      `SELECT id,asset_type,display_name,quantity,cost_basis_cents,current_value_cents,product_url,image_url,sport_segment FROM holdings WHERE player_id=${id} ORDER BY display_name LIMIT 500`,
+      `SELECT id,asset_type,display_name,quantity,cost_basis_cents,current_value_cents,product_url,image_url,sport_segment,acquired_at FROM holdings WHERE player_id=${id} ORDER BY display_name LIMIT 500`,
     ),
     readQuery<Snapshot>(
       `SELECT snapshot_date,total_value_cents FROM portfolio_snapshots WHERE player_id=${id} ORDER BY snapshot_date DESC LIMIT 90`,
+    ),
+    readQuery<Trade>(
+      `SELECT t.id,t.asset_type,t.asset_public_id,COALESCE(t.display_name,h.display_name,t.asset_public_id) AS display_name,t.side,t.quantity,t.price_cents,t.executed_at FROM trades t LEFT JOIN holdings h ON h.asset_public_id=t.asset_public_id AND h.player_id=t.player_id WHERE t.player_id=${id} ORDER BY t.executed_at DESC LIMIT 500`,
     ),
   ]);
   return {
@@ -227,6 +242,11 @@ export async function portfolio(playerId: string): Promise<Portfolio | null> {
     snapshots: snapshots
       .reverse()
       .map((s) => ({ ...s, total_value_cents: Number(s.total_value_cents) })),
+    trades: trades.map((t) => ({
+      ...t,
+      quantity: Number(t.quantity),
+      price_cents: Number(t.price_cents),
+    })),
   };
 }
 export async function leaderboard(crewId: string): Promise<Leader[]> {
@@ -317,6 +337,9 @@ export async function buyStock(
     );
     await conn.query(
       `INSERT INTO holdings (id,player_id,asset_type,asset_public_id,display_name,quantity,cost_basis_cents,current_value_cents,product_url,image_url,acquired_at) VALUES (${t(crypto.randomUUID())},${id},'stock',${t(product.symbol)},${t(product.symbol)},${shares},${price},${price},${t(`https://finance.yahoo.com/quote/${product.symbol}`)},'',CURRENT_TIMESTAMP)`,
+    );
+    await conn.query(
+      `INSERT INTO trades (id,player_id,asset_type,asset_public_id,display_name,side,quantity,price_cents) VALUES (${t(crypto.randomUUID())},${id},'stock',${t(product.symbol)},${t(product.symbol)},'buy',${shares},${price})`,
     );
     await conn.commit();
   } catch (e) {

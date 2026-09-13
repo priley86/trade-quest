@@ -42,6 +42,7 @@ begin;
 alter table public.profiles add column if not exists public_player_id uuid not null default gen_random_uuid();
 create unique index if not exists profiles_public_player_id_key on public.profiles(public_player_id);
 alter table public.profiles add column if not exists display_name text not null default ('Explorer ' || substr(gen_random_uuid()::text, 1, 8));
+alter table public.profiles add column if not exists favorite_color text not null default 'blue';
 -- The first version supports one crew per player; do not silently discard existing memberships.
 create unique index if not exists crew_members_one_crew_per_user on public.crew_members(user_id);
 alter table public.crews alter column created_by drop not null;
@@ -133,8 +134,8 @@ begin
     raise exception 'Invitation is invalid, expired, or already used';
   end if;
   select * into strict crew from public.crews where id = invitation.crew_id;
-  insert into public.profiles (id, first_name, last_name)
-    values (new.id, given_name, family_name) returning * into profile;
+  insert into public.profiles (id, first_name, last_name, favorite_color)
+    values (new.id, given_name, family_name, coalesce(new.raw_user_meta_data ->> 'favorite_color', 'blue')) returning * into profile;
   insert into public.crew_members (crew_id, user_id) values (crew.id, new.id);
   insert into public.ledger_enrollments (user_id, player_id, crew_public_id, display_name, starting_balance_cents)
     values (new.id, profile.public_player_id, crew.public_code, profile.display_name, crew.starting_balance_cents);

@@ -45,6 +45,7 @@ export default async function Home() {
           firstName={profile.first_name}
           crewName={crew.name}
           crewCode={crew.public_code}
+          startingBalanceCents={Number(crew.starting_balance_cents)}
         />
       ) : (
         <section className="empty-state">

@@ -11,6 +11,13 @@ export async function SportsBrowser({
   const r = await searchSports(query, sport);
   return (
     <>
+      <section className="page-intro">
+        <span className="eyebrow">The Sports Card Trading Post</span>
+        <h1>Choose a sports card</h1>
+        <p>
+          Search for a player, set, or card and explore its latest market price.
+        </p>
+      </section>
       <form className="pokemon-search" method="get">
         <select name="sport" defaultValue={sport}>
           <option value="">🏆 All sports</option>
@@ -53,6 +60,11 @@ export async function SportsBrowser({
           </Link>
         ))}
       </section>
+      <p className="trade-post-back">
+        <Link className="text-link" href="/trade">
+          ← Back to Trading Post
+        </Link>
+      </p>
     </>
   );
 }

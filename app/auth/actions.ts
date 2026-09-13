@@ -33,7 +33,12 @@ export async function signup(
       ...identity,
       password,
       options: {
-        data: { first_name: firstName, last_name: lastName, invite_code: code },
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          invite_code: code,
+          favorite_color: String(form.get("favoriteColor") || "blue"),
+        },
       },
     });
     if (error)

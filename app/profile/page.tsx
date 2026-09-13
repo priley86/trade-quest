@@ -21,6 +21,7 @@ export default async function ProfilePage() {
             firstName={profile.first_name}
             lastName={profile.last_name}
             contact={contact}
+            favoriteColor={profile.favorite_color}
           />
         </article>
         <article className="admin-card crew-info-card">

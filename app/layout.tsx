@@ -7,7 +7,10 @@ export const metadata: Metadata = {
   title: "TradeQuest | Learn investing through play",
   description: "A friendly investing adventure for young explorers.",
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon-32.png", sizes: "32x32" }],
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32" },
+    ],
     shortcut: "/favicon.svg",
     apple: "/apple-touch-icon.png",
   },

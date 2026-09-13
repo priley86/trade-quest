@@ -1,0 +1,16 @@
+# Generated output and local runtime data
+.next/
+.vinext/
+out/
+build/
+dist/
+.wrangler/
+.local/
+.vercel/
+coverage/
+outputs/
+work/
+supabase/.temp/
+supabase/.branches/
+next-env.d.ts
+*.tsbuildinfo

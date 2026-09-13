@@ -85,6 +85,7 @@ Only the server writes to the ledger. The local Dolt connection is for developme
    ```
 
    Existing profiles can be promoted with `update public.profiles set role = 'admin' where id = 'AUTH-USER-UUID';`.
+
 4. Apply `dolt/schema.sql` to `priley86/trade-quest`. Set `DOLTHUB_DATABASE`, `DOLTHUB_BRANCH`, and the server-only `DOLTHUB_API_TOKEN`. **Unset `DOLT_DATABASE_URL`** to select the hosted HTTP adapter.
 5. Configure Supabase Auth Site URL to the deployed app origin. For email confirmation, set the Confirm signup email template link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}`. Enable confirmation and configure email delivery. Phone registration additionally needs phone Auth and SMS delivery configured.
 6. Import this GitHub repository into Vercel using its Next.js preset. No Cloudflare/Sites runtime is required.

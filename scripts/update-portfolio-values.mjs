@@ -29,7 +29,7 @@ for (const account of accounts) {
     }
     const dayText = day.toISOString().slice(0, 10);
     const [[flow]] = await db.query(
-      "SELECT COALESCE(SUM(CASE WHEN side=\'buy\' THEN -price_cents*quantity ELSE price_cents*quantity END),0) flow FROM trades WHERE player_id=? AND DATE(executed_at)<=?",
+      "SELECT COALESCE(SUM(CASE WHEN side=\'buy\' THEN -price_cents ELSE price_cents END),0) flow FROM trades WHERE player_id=? AND DATE(executed_at)<=?",
       [account.player_id, row.d],
     );
     const cash = 100000 + Number(flow.flow);

@@ -140,7 +140,10 @@ async function request(path: string) {
     cache: "no-store",
     signal: AbortSignal.timeout(10000),
   });
-  if (!r.ok) return null;
+  if (!r.ok) {
+    console.error(`[pokemon-api] request failed: HTTP ${r.status}`);
+    return null;
+  }
   return r.json();
 }
 export async function searchPokemon(query: string, page = 1, refresh?: string) {

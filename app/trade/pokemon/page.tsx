@@ -12,7 +12,7 @@ export default async function PokemonPage({
   const page = Math.max(1, Number(params.page) || 1);
   return (
     <AppShell active="trade" profile={profile}>
-      <PokemonBrowser query={query} page={page} />
+      <PokemonBrowser query={query} page={page} refresh={params.refresh} />
     </AppShell>
   );
 }

@@ -880,6 +880,24 @@ h2 {
   border-radius: 10px;
   background: #eff9ff;
 }
+.signup-confirmation {
+  margin-top: 22px;
+  padding: 22px 18px;
+  border: 2px solid #bfe5f5;
+  border-radius: 16px;
+  background: #eff9ff;
+  text-align: center;
+}
+.signup-confirmation h2 {
+  margin: 0 0 8px;
+  color: var(--navy);
+  font-size: 24px;
+}
+.signup-confirmation p {
+  margin: 0;
+  color: #47617a;
+  line-height: 1.55;
+}
 .parent-note {
   color: #7e91a1;
   font-size: 12px;

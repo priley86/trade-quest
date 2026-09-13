@@ -108,11 +108,16 @@ export function SignupForm({
           </button>
         </form>
       )}
-      {state.message && (
+      {state.confirmation && state.message ? (
+        <section className="signup-confirmation" role="status">
+          <h2>You’re almost there!</h2>
+          <p>{state.message}</p>
+        </section>
+      ) : state.message ? (
         <p role="status" className="form-status">
           {state.message}
         </p>
-      )}
+      ) : null}
       {state.phone && <PhoneConfirmation phone={state.phone} />}
     </>
   );

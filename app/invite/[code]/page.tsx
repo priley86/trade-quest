@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { findInvitation } from "../../../lib/invitations";
+import { getViewer } from "../../../lib/auth";
 import { authConfigured } from "../../../lib/supabase/config";
 import { SignupForm } from "../../auth/forms";
 export const dynamic = "force-dynamic";
@@ -16,6 +18,7 @@ export default async function InvitePage({
 }) {
   const { code } = await params;
   const demo = code === "demo-quest";
+  if (!demo && (await getViewer())) redirect("/");
   let message =
     "This invitation is expired, used, or unavailable. Ask your crew leader for a new link.";
   let crew;

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { findInvitation } from "../../../lib/invitations";
 import { getViewer } from "../../../lib/auth";
@@ -19,6 +20,8 @@ export default async function InvitePage({
   const { code } = await params;
   const demo = code === "demo-quest";
   if (!demo && (await getViewer())) redirect("/");
+  const pendingSignup =
+    (await cookies()).get("tradequest_pending_signup")?.value === code;
   let message =
     "This invitation is expired, used, or unavailable. Ask your crew leader for a new link.";
   let crew;
@@ -81,6 +84,14 @@ export default async function InvitePage({
                 </p>
               )}
               <SignupForm code={code} disabled={demo} />
+            </>
+          ) : pendingSignup ? (
+            <>
+              <h1>You’re almost there!</h1>
+              <p>
+                Check your email to confirm your account, then log in to join
+                your crew.
+              </p>
             </>
           ) : (
             <>

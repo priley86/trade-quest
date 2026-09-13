@@ -1,5 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { serverClient } from "../../lib/supabase/server";
 import {
   contactIdentity,
@@ -48,7 +49,14 @@ export async function signup(
             ? "We could not accept this invitation. Ask your crew leader for a fresh link, or try logging in if you already registered."
             : error.message,
       };
-    if (!data.session)
+    if (!data.session) {
+      (await cookies()).set("tradequest_pending_signup", code, {
+        httpOnly: true,
+        maxAge: 15 * 60,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+      });
       return {
         confirmation: true,
         phone: "phone" in identity ? identity.phone : undefined,
@@ -57,6 +65,7 @@ export async function signup(
             ? "Enter the code from your text message to finish joining."
             : "Check your email to confirm your account, then log in. If you already have an account, use Log in below.",
       };
+    }
   } catch (error) {
     return {
       message:

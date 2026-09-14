@@ -37,6 +37,12 @@ export default async function StockDetail({
           <p>Latest market price</p>
           <StockBuy symbol={stock.symbol} price={stock.price} />
         </div>
+        {chartBars.length > 1 && (
+          <section className="chart-card detail-history-chart">
+            <h2>1-year price history</h2>
+            <HistoryChart values={chartBars} />
+          </section>
+        )}
         <div className="price-history">
           <h2>Recent snapshot</h2>
           <dl className="snapshot-grid">
@@ -67,12 +73,6 @@ export default async function StockDetail({
           </dl>
         </div>
       </section>
-      {chartBars.length > 1 && (
-        <section className="chart-card stock-chart">
-          <h2>1-year price history</h2>
-          <HistoryChart values={chartBars} />
-        </section>
-      )}
       <p>
         <a
           className="text-link"

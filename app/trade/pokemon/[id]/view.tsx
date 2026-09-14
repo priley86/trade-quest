@@ -58,6 +58,12 @@ export function PokemonDetail({ product }: { product: PokemonProduct }) {
             </div>
           </dl>
         </div>
+        {product.history.length > 1 && (
+          <section className="chart-card detail-history-chart">
+            <h2>1-year price history</h2>
+            <HistoryChart values={product.history} />
+          </section>
+        )}
         <div className="price-history">
           {product.cardmarket && (
             <>
@@ -82,12 +88,6 @@ export function PokemonDetail({ product }: { product: PokemonProduct }) {
           )}
         </div>
       </section>
-      {product.history.length > 1 && (
-        <section className="chart-card">
-          <h2>1-year price history</h2>
-          <HistoryChart values={product.history} />
-        </section>
-      )}
       <div className="detail-links">
         <a
           className="text-link"

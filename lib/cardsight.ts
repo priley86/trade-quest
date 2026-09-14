@@ -22,6 +22,7 @@ export type SportsProduct = {
     source: string;
     url?: string;
   }[];
+  history?: { date: string; cents: number }[];
 };
 const base = "https://api.cardsight.ai";
 const sportsCache = new Map<string, SportsProduct[]>();
@@ -138,6 +139,26 @@ export async function getSportsProduct(id: string, sport = "") {
       source: r.source,
       url: r.url,
     }));
+    const yearAgo = new Date();
+    yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+    const weekly = new Map<string, number[]>();
+    for (const record of records) {
+      const date = new Date(record.date);
+      if (date.getTime() < yearAgo.getTime()) continue;
+      const monday = new Date(date);
+      monday.setUTCHours(0, 0, 0, 0);
+      monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
+      const week = monday.toISOString().slice(0, 10);
+      weekly.set(week, [...(weekly.get(week) || []), Number(record.price)]);
+    }
+    p.history = [...weekly.entries()]
+      .map(([date, prices]) => ({
+        date,
+        cents: Math.round(
+          (prices.reduce((sum, price) => sum + price, 0) / prices.length) * 100,
+        ),
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
   }
   return p;
 }

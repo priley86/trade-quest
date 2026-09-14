@@ -6,6 +6,7 @@ import { getSportsProduct } from "../../../../lib/cardsight";
 import { AppShell } from "../../../ui";
 import { money } from "../../../../lib/validation";
 import { SportsBuy } from "../detail";
+import { HistoryChart } from "../../../portfolio/history-chart";
 export default async function SportsDetail({
   params,
   searchParams,
@@ -54,6 +55,12 @@ export default async function SportsDetail({
             </div>
           </dl>
         </div>
+        {p.history && p.history.length > 1 && (
+          <section className="chart-card detail-history-chart">
+            <h2>1-year price history (average weekly sales price)</h2>
+            <HistoryChart values={p.history} />
+          </section>
+        )}
         <div className="price-history">
           <h2>Recent snapshot</h2>
           <dl className="snapshot-grid">

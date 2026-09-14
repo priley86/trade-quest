@@ -1381,6 +1381,9 @@ summary {
   border-top: 2px solid var(--line);
   padding-top: 20px;
 }
+.pokemon-detail > .detail-history-chart {
+  grid-column: 1 / -1;
+}
 .history-bars {
   height: 190px;
   display: flex;
@@ -1681,18 +1684,14 @@ summary {
   padding-top: 20px;
   margin-top: 40px;
 }
-.stock-chart {
-  max-width: 980px;
-  margin: 26px auto 0;
-}
-.stock-chart {
+.detail-history-chart {
   box-sizing: border-box;
   width: 100%;
   max-width: 980px;
   margin: 32px auto 0;
   padding: 22px 24px;
 }
-.stock-chart .history-chart {
+.detail-history-chart .history-chart {
   margin-top: 18px;
 }
 .pokemon-card .category-icon.stock {

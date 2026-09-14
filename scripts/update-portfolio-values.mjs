@@ -1,5 +1,11 @@
 import mysql from "mysql2/promise";
 
+function calendarDate(value) {
+  return value instanceof Date
+    ? value.toISOString().slice(0, 10)
+    : String(value).slice(0, 10);
+}
+
 const db = await mysql.createConnection({
   uri:
     process.env.DOLT_DATABASE_URL || "mysql://root@127.0.0.1:3307/tradequest",
@@ -17,11 +23,10 @@ for (const account of accounts) {
     [account.player_id],
   );
   for (const row of dates) {
-    const day = new Date(row.d);
-    const dayText = day.toISOString().slice(0, 10);
+    const dayText = calendarDate(row.d);
     let holdingsValue = 0;
     for (const h of holdings) {
-      if (String(h.acquired_date).slice(0, 10) > dayText) continue;
+      if (calendarDate(h.acquired_date) > dayText) continue;
       const [[latest]] = await db.query(
         "SELECT market_value_cents FROM holding_price_history WHERE holding_id=? AND recorded_date<=? ORDER BY recorded_date DESC LIMIT 1",
         [h.id, row.d],

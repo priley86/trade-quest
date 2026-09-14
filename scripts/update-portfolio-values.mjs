@@ -17,17 +17,17 @@ for (const account of accounts) {
     [account.player_id],
   );
   for (const row of dates) {
-    let holdingsValue = 0;
     const day = new Date(row.d);
+    const dayText = day.toISOString().slice(0, 10);
+    let holdingsValue = 0;
     for (const h of holdings) {
-      if (new Date(h.acquired_at) > day) continue;
+      if (String(h.acquired_at).slice(0, 10) > dayText) continue;
       const [[latest]] = await db.query(
         "SELECT market_value_cents FROM holding_price_history WHERE holding_id=? AND recorded_date<=? ORDER BY recorded_date DESC LIMIT 1",
         [h.id, row.d],
       );
       holdingsValue += Number(latest?.market_value_cents ?? h.cost_basis_cents);
     }
-    const dayText = day.toISOString().slice(0, 10);
     const [[flow]] = await db.query(
       "SELECT COALESCE(SUM(CASE WHEN side=\'buy\' THEN -price_cents ELSE price_cents END),0) flow FROM trades WHERE player_id=? AND DATE(executed_at)<=?",
       [account.player_id, row.d],

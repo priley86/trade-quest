@@ -13,7 +13,7 @@ for (const account of accounts) {
     [account.player_id],
   );
   const [holdings] = await db.query(
-    "SELECT id,cost_basis_cents,acquired_at FROM holdings WHERE player_id=?",
+    "SELECT id,cost_basis_cents,DATE(acquired_at) AS acquired_date FROM holdings WHERE player_id=?",
     [account.player_id],
   );
   for (const row of dates) {
@@ -21,7 +21,7 @@ for (const account of accounts) {
     const dayText = day.toISOString().slice(0, 10);
     let holdingsValue = 0;
     for (const h of holdings) {
-      if (String(h.acquired_at).slice(0, 10) > dayText) continue;
+      if (String(h.acquired_date).slice(0, 10) > dayText) continue;
       const [[latest]] = await db.query(
         "SELECT market_value_cents FROM holding_price_history WHERE holding_id=? AND recorded_date<=? ORDER BY recorded_date DESC LIMIT 1",
         [h.id, row.d],

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 640" role="img" aria-labelledby="title desc">
+  <title id="title">Sports card</title>
+  <desc id="desc">A friendly placeholder for a sports card image</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#e8f3ff" />
+      <stop offset="1" stop-color="#c8dcf5" />
+    </linearGradient>
+  </defs>
+  <rect width="480" height="640" rx="28" fill="url(#bg)" />
+  <rect x="24" y="24" width="432" height="592" rx="20" fill="#fff" stroke="#a9c4e4" stroke-width="8" />
+  <path d="M240 150c-68 0-124 56-124 124s56 124 124 124 124-56 124-124-56-124-124-124Z" fill="#f4a62a" />
+  <path d="M132 252h216M240 150v248" stroke="#fff" stroke-width="12" opacity=".9" />
+  <path d="M170 440h140" stroke="#305887" stroke-width="12" stroke-linecap="round" />
+  <text x="240" y="500" fill="#305887" font-family="Arial, sans-serif" font-size="30" font-weight="700" text-anchor="middle">SPORTS CARD</text>
+  <text x="240" y="548" fill="#6b83a3" font-family="Arial, sans-serif" font-size="20" text-anchor="middle">Image unavailable</text>
+</svg>

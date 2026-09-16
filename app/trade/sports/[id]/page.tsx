@@ -6,6 +6,7 @@ import { getSportsProduct } from "../../../../lib/cardsight";
 import { AppShell } from "../../../ui";
 import { money } from "../../../../lib/validation";
 import { SportsBuy } from "../detail";
+import { SportsCardImage } from "../card-image";
 import { HistoryChart } from "../../../portfolio/history-chart";
 export default async function SportsDetail({
   params,
@@ -24,7 +25,7 @@ export default async function SportsDetail({
       <BackButton label="← Back to sports cards" />
       <section className="pokemon-detail">
         <div className="detail-art">
-          <img src={p.imageUrl} alt="" />
+          <SportsCardImage src={p.imageUrl} alt="" />
         </div>
         <div>
           <span className="eyebrow">CardSight market data</span>

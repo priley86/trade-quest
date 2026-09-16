@@ -40,6 +40,12 @@ export default async function StocksPage({
             >
               <div className="category-icon stock large">📈</div>
               <h2>{s.symbol}</h2>
+              <p>
+                {s.name} · {s.exchange}
+              </p>
+              <p className={s.change >= 0 ? "positive" : "negative"}>
+                Daily change: {s.change >= 0 ? "+" : ""}${s.change.toFixed(2)}
+              </p>
               <p>Latest market price</p>
               <strong>${s.price.toFixed(2)}</strong>
             </Link>

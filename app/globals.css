@@ -542,6 +542,10 @@ h2 {
   border-radius: 30px;
   font-size: 55px;
   border-width: 3px;
+  align-items: center;
+  justify-items: center;
+  line-height: 1;
+  text-align: center;
 }
 .category-icon .pokeball-icon {
   display: block;
@@ -1350,6 +1354,17 @@ summary {
 .pokemon-card strong {
   color: #c73636;
   font-size: 21px;
+}
+.result-sport-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  margin: 12px auto 0;
+  border-radius: 10px;
+  font-size: 19px;
+  line-height: 1;
+  justify-self: center;
+  place-items: center;
 }
 .pokemon-detail {
   display: grid;

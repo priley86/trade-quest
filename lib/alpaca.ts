@@ -19,15 +19,24 @@ export async function searchStocks(query: string): Promise<StockProduct[]> {
   );
   if (!r.ok) return [];
   const j = await r.json();
-  return Object.entries(j).map(([symbol, v]: any) => ({
-    symbol,
-    name: symbol,
-    exchange: "US",
-    price: Number(v.latestTrade?.p || v.dailyBar?.c || 0),
-    change:
-      Number(v.dailyBar?.c || 0) -
-      Number(v.prevDailyBar?.c || v.dailyBar?.c || 0),
-  }));
+  return Promise.all(
+    Object.entries(j).map(async ([symbol, v]: any) => {
+      const asset = await fetch(
+        `https://paper-api.alpaca.markets/v2/assets/${encodeURIComponent(symbol)}`,
+        { headers, cache: "no-store" },
+      );
+      const metadata = asset.ok ? await asset.json() : {};
+      return {
+        symbol,
+        name: metadata.name || symbol,
+        exchange: metadata.exchange || "US",
+        price: Number(v.latestTrade?.p || v.dailyBar?.c || 0),
+        change:
+          Number(v.dailyBar?.c || 0) -
+          Number(v.prevDailyBar?.c || v.dailyBar?.c || 0),
+      };
+    }),
+  );
 }
 export async function getStock(symbol: string) {
   const r = await fetch(

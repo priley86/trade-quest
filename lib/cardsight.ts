@@ -40,8 +40,37 @@ async function request(path: string) {
   });
   return r.ok ? r.json() : null;
 }
+export function findImage(
+  value: unknown,
+  allowDirect = false,
+): string | undefined {
+  if (typeof value === "string") {
+    const candidate = value.trim();
+    return allowDirect && /^(https?:\/\/|\/\/|\/)/i.test(candidate)
+      ? candidate
+      : undefined;
+  }
+  if (!value || typeof value !== "object") return undefined;
+  for (const [key, nested] of Object.entries(value)) {
+    if (/image|photo|picture|thumbnail|front|back/i.test(key)) {
+      const image = findImage(nested, true);
+      if (image) return image;
+    }
+  }
+  for (const nested of Object.values(value)) {
+    const image = findImage(nested, allowDirect);
+    if (image) return image;
+  }
+  return undefined;
+}
 function map(c: any): SportsProduct {
   const p = c.pricing || c.price || {};
+  const recordWithImage = [
+    ...(c.pricing?.raw?.records || []),
+    ...(c.raw?.records || []),
+    ...(c.records || []),
+  ].find((record: any) => record.image_url || record.imageUrl);
+  const imageUrl = findImage(c) || findImage(recordWithImage);
   return {
     id: String(c.id),
     name:
@@ -59,12 +88,7 @@ function map(c: any): SportsProduct {
     cardNumber: c.cardNumber || c.number,
     url: c.url || `https://cardsight.ai/cards/${c.id}`,
     apiUrl: `${base}/v1/catalog/cards/${c.id}`,
-    imageUrl:
-      c.image_url ||
-      c.imageUrl ||
-      c.images?.large ||
-      c.images?.medium ||
-      "/sports-card.svg",
+    imageUrl: imageUrl || `/api/sports-card-image/${encodeURIComponent(c.id)}`,
     marketPriceCents: Math.round(
       Number(p.market || p.market_price || p.value || 0) * 100,
     ),
@@ -131,7 +155,7 @@ export async function getSportsProduct(id: string, sport = "") {
     p.highCents = Math.round(
       Math.max(...recent.map((r: any) => Number(r.price))) * 100,
     );
-    p.imageUrl = records.find((r: any) => r.image_url)?.image_url || p.imageUrl;
+    p.imageUrl = findImage(records) || p.imageUrl;
     p.recentRecords = recent.map((r: any) => ({
       title: r.title,
       price: Number(r.price),

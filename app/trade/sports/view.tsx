@@ -41,7 +41,21 @@ export async function SportsBrowser({
             key={p.id}
             href={`/trade/sports/${p.id}?sport=${encodeURIComponent(p.segmentName || sport)}&q=${encodeURIComponent(query)}`}
           >
-            <div className="category-icon sports large">
+            <h2>{p.name}</h2>
+            <p>
+              {p.year || ""} · {p.manufacturerName || ""}
+            </p>
+            <small>
+              {p.releaseName || ""} · {p.setName || ""}
+            </small>
+            <small>
+              {p.segmentName || ""}
+              {p.cardNumber ? ` · Card #${p.cardNumber}` : ""}
+            </small>
+            <div
+              className="category-icon sports result-sport-icon"
+              aria-hidden="true"
+            >
               {p.segmentName === "Basketball"
                 ? "🏀"
                 : p.segmentName === "Football"
@@ -50,13 +64,6 @@ export async function SportsBrowser({
                     ? "🏒"
                     : "⚾"}
             </div>
-            <h2>{p.name}</h2>
-            <p>
-              {p.year || ""} · {p.manufacturerName || ""}
-            </p>
-            <small>
-              {p.setName || ""} · {p.segmentName || ""}
-            </small>
           </Link>
         ))}
       </section>

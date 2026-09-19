@@ -1,44 +1,7 @@
 "use client";
 import { useActionState } from "react";
-import { login, signup, verifyPhone, resendPhone } from "./actions";
+import { login, signup } from "./actions";
 import { ColorPicker } from "../color-picker";
-
-function PhoneConfirmation({ phone }: { phone: string }) {
-  const [state, action, pending] = useActionState(verifyPhone, {});
-  const [resendState, resend, resending] = useActionState(resendPhone, {});
-  return (
-    <>
-      <form action={action}>
-        <input type="hidden" name="phone" value={phone} />
-        <label>
-          Text message code
-          <input
-            name="token"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            required
-            maxLength={10}
-          />
-        </label>
-        <button className="primary-button" disabled={pending}>
-          {pending ? "Checking…" : "Confirm my phone"}
-        </button>
-        {state.message && (
-          <p role="status" className="form-status">
-            {state.message}
-          </p>
-        )}
-      </form>
-      <form action={resend}>
-        <input type="hidden" name="phone" value={phone} />
-        <button className="text-button" disabled={resending}>
-          Send a new code
-        </button>
-        {resendState.message && <p role="status">{resendState.message}</p>}
-      </form>
-    </>
-  );
-}
 export function SignupForm({
   code,
   disabled = false,
@@ -118,7 +81,6 @@ export function SignupForm({
           {state.message}
         </p>
       ) : null}
-      {state.phone && <PhoneConfirmation phone={state.phone} />}
     </>
   );
 }

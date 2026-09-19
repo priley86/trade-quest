@@ -56,7 +56,7 @@ The public `/demo` route works without database configuration and is clearly lab
 
 - Native Next.js App Router application with responsive, kid-friendly trading and portfolio views
 - Crew-personalized signup, invitations, admin controls, profile editing, favorite-color avatars, and crew leaderboards
-- Email or phone + password signup/login, server-managed sessions, refresh, logout, email confirmation, and phone verification
+- Email or phone + password signup/login, server-managed sessions, refresh, and logout without signup verification
 - Player-specific cash, holdings, cost basis, gains/losses, portfolio history, transaction history, crew rankings, and member portfolio views
 - Separate trading flows for stocks, Pokémon cards, and sports cards, including search/detail pages and buy/sell actions
 - Market data integrations for Alpaca stocks, CardSight sports cards, and the RapidAPI Pokémon card service
@@ -90,7 +90,7 @@ Only the server writes to the ledger. Dolt is used as the local MySQL-compatible
 
 4. Create the production MySQL database in Aiven and apply `dolt/schema.sql` using its MySQL connection details. Set the server-only `DOLT_DATABASE_URL` to the Aiven connection URL. Despite the historical variable name, this is the production MySQL connection; Dolt is local-only.
 5. Configure the market-data secrets used by the weekly GitHub Action: `POKEMON_API_KEY`, `OPEN_EXCHANGE_RATES_APP_ID`, `ALPACA_API_KEY`, `ALPACA_API_SECRET`, and `CARDSIGHT_API_KEY`. Also set `DOLT_DATABASE_URL` as a GitHub Secret for the updater workflow.
-6. Configure Supabase Auth Site URL to the deployed app origin. For email confirmation, set the Confirm signup email template link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}`. Configure Supabase Auth SMTP to use Brevo as the email provider, then enable confirmation and configure email delivery. Phone registration additionally needs phone Auth and SMS delivery configured.
+6. Configure Supabase Auth Site URL to the deployed app origin. In Supabase Auth → Email, leave **Confirm email** disabled so invited players can log in immediately after signup. In Supabase Auth → Phone, leave **Confirm phone** disabled as well. You can still configure SMTP for other application emails; signup verification is intentionally not required.
 7. Import this GitHub repository into Vercel using its Next.js preset. No Cloudflare/Sites runtime is required.
 
 The app uses Supabase’s [server-side session guidance](https://supabase.com/docs/guides/auth/server-side/creating-a-client) and [password authentication](https://supabase.com/docs/guides/auth/passwords). Production database hosting is provided by Aiven MySQL; local development uses Dolt’s MySQL-compatible server.

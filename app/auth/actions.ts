@@ -1,6 +1,5 @@
 "use server";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { serverClient } from "../../lib/supabase/server";
 import {
   contactIdentity,
@@ -49,23 +48,11 @@ export async function signup(
             ? "We could not accept this invitation. Ask your crew leader for a fresh link, or try logging in if you already registered."
             : error.message,
       };
-    if (!data.session) {
-      (await cookies()).set("tradequest_pending_signup", code, {
-        httpOnly: true,
-        maxAge: 15 * 60,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-      });
+    if (!data.session)
       return {
-        confirmation: true,
-        phone: "phone" in identity ? identity.phone : undefined,
         message:
-          "phone" in identity
-            ? "Enter the code from your text message to finish joining."
-            : "Check your email to confirm your account, then log in. If you already have an account, use Log in below.",
+          "Your account was created. Log in to continue. If login does not work, ask your crew leader to disable signup confirmations in Supabase Auth.",
       };
-    }
   } catch (error) {
     return {
       message:
@@ -104,57 +91,6 @@ export async function login(
     };
   }
   redirect("/");
-}
-export async function verifyPhone(
-  _previous: AuthState,
-  form: FormData,
-): Promise<AuthState> {
-  try {
-    const identity = contactIdentity(form.get("phone"));
-    if (!("phone" in identity)) throw new Error("Enter a phone number.");
-    const token = requiredText(form.get("token"), "Confirmation code", 10);
-    const supabase = await serverClient();
-    const { error } = await supabase.auth.verifyOtp({
-      phone: identity.phone,
-      token,
-      type: "sms",
-    });
-    if (error)
-      return {
-        message:
-          "That code is invalid or expired. Try the latest code or request another.",
-      };
-  } catch (error) {
-    return {
-      message:
-        error instanceof Error ? error.message : "Couldn’t confirm your phone.",
-    };
-  }
-  redirect("/");
-}
-export async function resendPhone(
-  _previous: AuthState,
-  form: FormData,
-): Promise<AuthState> {
-  try {
-    const identity = contactIdentity(form.get("phone"));
-    if (!("phone" in identity)) throw new Error("Enter a phone number.");
-    const supabase = await serverClient();
-    const { error } = await supabase.auth.resend({
-      type: "sms",
-      phone: identity.phone,
-    });
-    return {
-      message: error
-        ? "Couldn’t resend yet. Wait a minute and try again."
-        : "A new code is on its way.",
-    };
-  } catch (error) {
-    return {
-      message:
-        error instanceof Error ? error.message : "Couldn’t resend the code.",
-    };
-  }
 }
 export async function logout() {
   const supabase = await serverClient();

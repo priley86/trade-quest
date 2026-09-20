@@ -198,7 +198,11 @@ export function PortfolioView({
               <Link
                 className="holding-row"
                 key={h.id}
-                href={`/portfolio/${h.id}`}
+                href={
+                  own
+                    ? `/portfolio/${h.id}`
+                    : `/leaderboard/${data.player_id}/holding/${h.id}`
+                }
               >
                 <CategoryIcon
                   type={

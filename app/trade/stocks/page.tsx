@@ -15,7 +15,7 @@ export default async function StocksPage({
       <section className="page-intro">
         <span className="eyebrow">The Stock Trading Post</span>
         <h1>Choose a stock</h1>
-        <p>Search for a company symbol and explore its latest market price.</p>
+        <p>Search for a company symbol or TREASURY to explore its latest market price.</p>
       </section>
       <form className="pokemon-search" method="get">
         <input
@@ -38,13 +38,15 @@ export default async function StocksPage({
               key={s.symbol}
               href={`/trade/stocks/${s.symbol}`}
             >
-              <div className="category-icon stock large">📈</div>
+              <div className={`category-icon ${s.symbol === "TREASURY" ? "treasury" : "stock"} large`}>{s.symbol === "TREASURY" ? "＄" : "📈"}</div>
               <h2>{s.symbol}</h2>
               <p>
                 {s.name} · {s.exchange}
               </p>
               <p className={s.change >= 0 ? "positive" : "negative"}>
-                Daily change: {s.change >= 0 ? "+" : ""}${s.change.toFixed(2)}
+                {s.treasuryYield !== undefined
+                  ? `Current 1-month yield: ${s.treasuryYield.toFixed(2)}%`
+                  : `Daily change: ${s.change >= 0 ? "+" : ""}$${s.change.toFixed(2)}`}
               </p>
               <p>Latest market price</p>
               <strong>${s.price.toFixed(2)}</strong>

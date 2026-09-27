@@ -527,6 +527,10 @@ h2 {
   background: #e8f8ff;
   color: #068abf;
 }
+.category-icon.treasury {
+  background: #e9f8ee;
+  color: #168447;
+}
 .category-icon.pokemon {
   background: #ffecec;
   color: #e33131;
@@ -1324,6 +1328,10 @@ summary {
   padding: 18px;
   text-align: center;
   box-shadow: 0 5px 0 #ffdada;
+}
+.pokemon-card .category-icon {
+  margin-left: auto;
+  margin-right: auto;
 }
 .pokemon-card:hover {
   transform: translateY(-2px);

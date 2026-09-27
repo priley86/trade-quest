@@ -96,10 +96,12 @@ export function CategoryIcon({
   type,
   large = false,
   sport,
+  symbol,
 }: {
   type: "stock" | "pokemon" | "sports";
   large?: boolean;
   sport?: string;
+  symbol?: string;
 }) {
   const data = {
     stock: ["📈", "Stocks"],
@@ -107,7 +109,9 @@ export function CategoryIcon({
     sports: ["⚾", "Sports cards"],
   }[type];
   const icon =
-    sport === "Basketball"
+    symbol === "TREASURY"
+      ? "＄"
+      : sport === "Basketball"
       ? "🏀"
       : sport === "Football"
         ? "🏈"
@@ -116,7 +120,7 @@ export function CategoryIcon({
           : data[0];
   return (
     <span
-      className={`category-icon ${type} ${large ? "large" : ""}`}
+      className={`category-icon ${type} ${symbol === "TREASURY" ? "treasury" : ""} ${large ? "large" : ""}`}
       aria-label={data[1]}
     >
       {type === "pokemon" ? (

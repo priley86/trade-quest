@@ -7,6 +7,7 @@ import { money, returnPercent } from "../../../../../lib/validation";
 import { AppShell } from "../../../../ui";
 import { HistoryChart } from "../../../../portfolio/history-chart";
 import { SportsMarketDetails } from "../../../../trade/sports/market-details";
+import { getOneMonthTreasuryYield, treasuryReturns } from "../../../../../lib/alpaca";
 
 export default async function CrewHoldingPage({
   params,
@@ -56,9 +57,9 @@ export default async function CrewHoldingPage({
             <img src={holding.image_url} alt="" />
           ) : (
             <div
-              className={`category-icon ${holding.asset_type === "stock" ? "stock" : holding.asset_type === "sports_card" ? "sports" : "pokemon"} large`}
+              className={`category-icon ${holding.asset_type === "stock" ? "stock" : holding.asset_type === "sports_card" ? "sports" : "pokemon"} ${holding.asset_public_id === "TREASURY" ? "treasury" : ""} large`}
             >
-              {holding.asset_type === "stock"
+              {holding.asset_public_id === "TREASURY" ? "＄" : holding.asset_type === "stock"
                 ? "📈"
                 : holding.asset_type === "sports_card"
                   ? "⚾"
@@ -103,7 +104,9 @@ export default async function CrewHoldingPage({
               <dd>{money(holding.current_value_cents)}</dd>
             </div>
           </dl>
-          {holding.product_url && holding.asset_type !== "sports_card" && (
+          {holding.asset_public_id === "TREASURY" ? (
+            <a className="text-link" href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve" target="_blank" rel="noreferrer">U.S. Treasury daily rates ↗</a>
+          ) : holding.product_url && holding.asset_type !== "sports_card" && (
             <a
               className="text-link"
               href={holding.product_url}
@@ -116,6 +119,7 @@ export default async function CrewHoldingPage({
               ↗
             </a>
           )}
+          {holding.asset_public_id === "TREASURY" && <TreasuryReturnSnapshot />}
           {holding.asset_type === "sports_card" && holding.asset_public_id && (
             <SportsMarketDetails id={holding.asset_public_id} sport={holding.sport_segment} />
           )}
@@ -141,4 +145,10 @@ export default async function CrewHoldingPage({
       </section>
     </AppShell>
   );
+}
+
+async function TreasuryReturnSnapshot() {
+  const yieldPercent = await getOneMonthTreasuryYield();
+  const returns = treasuryReturns(yieldPercent);
+  return <dl className="snapshot-grid"><div><dt>Projected daily return</dt><dd className="positive">+{(returns.daily * 100).toFixed(3)}%</dd></div><div><dt>Projected 1-month return</dt><dd className="positive">+{(returns.monthly * 100).toFixed(2)}%</dd></div><div><dt>Projected 1-year return</dt><dd className="positive">+{(returns.yearly * 100).toFixed(2)}%</dd></div></dl>;
 }

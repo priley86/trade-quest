@@ -212,7 +212,8 @@ export function PortfolioView({
                         ? "pokemon"
                         : "sports"
                   }
-                  sport={h.sport_segment}
+                sport={h.sport_segment}
+                symbol={h.asset_public_id}
                 />
                 <div className="holding-name">
                   <b>{h.display_name}</b>

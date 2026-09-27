@@ -6,6 +6,7 @@ import { portfolio, readQuery } from "../../../../../lib/dolt";
 import { money, returnPercent } from "../../../../../lib/validation";
 import { AppShell } from "../../../../ui";
 import { HistoryChart } from "../../../../portfolio/history-chart";
+import { SportsMarketDetails } from "../../../../trade/sports/market-details";
 
 export default async function CrewHoldingPage({
   params,
@@ -114,6 +115,9 @@ export default async function CrewHoldingPage({
                 : "Review card source"}{" "}
               ↗
             </a>
+          )}
+          {holding.asset_type === "sports_card" && holding.asset_public_id && (
+            <SportsMarketDetails id={holding.asset_public_id} sport={holding.sport_segment} />
           )}
         </div>
       </section>

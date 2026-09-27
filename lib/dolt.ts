@@ -143,6 +143,7 @@ export async function sellHolding(playerId: string, holdingId: string) {
 
 export type Holding = {
   id: string;
+  asset_public_id?: string;
   asset_type: "stock" | "pokemon_card" | "sports_card";
   display_name: string;
   quantity: number;
@@ -221,7 +222,7 @@ export async function portfolio(playerId: string): Promise<Portfolio | null> {
   if (!accounts[0]) return null;
   const [holdings, snapshots, trades] = await Promise.all([
     readQuery<Holding>(
-      `SELECT id,asset_type,display_name,quantity,cost_basis_cents,current_value_cents,product_url,image_url,sport_segment,acquired_at FROM holdings WHERE player_id=${id} ORDER BY display_name LIMIT 500`,
+      `SELECT id,asset_type,asset_public_id,display_name,quantity,cost_basis_cents,current_value_cents,product_url,image_url,sport_segment,acquired_at FROM holdings WHERE player_id=${id} ORDER BY display_name LIMIT 500`,
     ),
     readQuery<Snapshot>(
       `SELECT snapshot_date,total_value_cents FROM portfolio_snapshots WHERE player_id=${id} ORDER BY snapshot_date DESC LIMIT 90`,

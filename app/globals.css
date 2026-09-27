@@ -1393,11 +1393,19 @@ summary {
 }
 .price-history {
   grid-column: 1 / -1;
+  width: 100%;
+  margin: 0 auto;
   border-top: 2px solid var(--line);
   padding-top: 20px;
 }
 .pokemon-detail > .detail-history-chart {
   grid-column: 1 / -1;
+}
+.pokemon-detail + .chart-card {
+  width: 100%;
+  max-width: 980px;
+  margin: 32px auto 0;
+  box-sizing: border-box;
 }
 .history-bars {
   height: 190px;
@@ -1705,6 +1713,11 @@ summary {
   max-width: 980px;
   margin: 32px auto 0;
   padding: 22px 24px;
+}
+.price-history .detail-history-chart {
+  max-width: none;
+  margin: 32px 0 0;
+  padding: 0;
 }
 .detail-history-chart .history-chart {
   margin-top: 18px;

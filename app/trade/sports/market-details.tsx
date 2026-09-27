@@ -19,6 +19,14 @@ export async function SportsMarketDetails({
 export function SportsMarketSnapshot({ product }: { product: SportsProduct }) {
   return (
     <>
+      <h2>Card details</h2>
+      <dl className="snapshot-grid">
+        <div><dt>Year</dt><dd>{product.year || "—"}</dd></div>
+        <div><dt>Manufacturer</dt><dd>{product.manufacturerName || "—"}</dd></div>
+        <div><dt>Release</dt><dd>{product.releaseName || "—"}</dd></div>
+        <div><dt>Set</dt><dd>{product.setName || "—"}</dd></div>
+        <div><dt>Card number</dt><dd>{product.cardNumber || "—"}</dd></div>
+      </dl>
       <h2>CardSight market data</h2>
       <p>Current value is derived from the average of the 10 most recent sales.</p>
       <dl className="snapshot-grid">

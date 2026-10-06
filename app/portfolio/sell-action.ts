@@ -21,6 +21,7 @@ export async function sellHolding(id: string): Promise<string> {
     }
     await sell(profile.public_player_id, id, saleValueCents);
     revalidatePath("/");
+    revalidatePath("/leaderboard", "layout");
     return "Sold and added to your cash.";
   } catch (error) {
     return error instanceof Error ? error.message : "Couldn’t sell this card.";

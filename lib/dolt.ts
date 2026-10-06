@@ -3,6 +3,7 @@ import { enrollmentQuery, sqlText, type Enrollment } from "./dolt-sql";
 import { uuid } from "./validation";
 import mysql, { type Pool, type RowDataPacket } from "mysql2/promise";
 import crypto from "node:crypto";
+import { getStockValueCents } from "./alpaca";
 
 const local = globalThis as typeof globalThis & { tradequestDolt?: Pool };
 function localPool(): Pool | null {
@@ -257,14 +258,48 @@ export async function portfolio(playerId: string): Promise<Portfolio | null> {
   };
 }
 export async function leaderboard(crewId: string): Promise<Leader[]> {
-  const rows = await readQuery<Leader>(
-    `SELECT p.player_id,p.display_name,p.cash_cents,p.cash_cents+COALESCE(SUM(h.current_value_cents),0) AS total_value_cents FROM player_accounts p LEFT JOIN holdings h ON h.player_id=p.player_id WHERE p.crew_public_id=${sqlText(crewId)} GROUP BY p.player_id,p.display_name,p.cash_cents ORDER BY total_value_cents DESC,p.player_id LIMIT 500`,
+  const rows = await readQuery<{
+    player_id: string;
+    display_name: string;
+    cash_cents: number;
+    holding_id?: string;
+    asset_type?: Holding["asset_type"];
+    asset_public_id?: string;
+    quantity?: number;
+    current_value_cents?: number;
+  }>(
+    `SELECT p.player_id,p.display_name,p.cash_cents,h.id AS holding_id,h.asset_type,h.asset_public_id,h.quantity,h.current_value_cents FROM player_accounts p LEFT JOIN holdings h ON h.player_id=p.player_id WHERE p.crew_public_id=${sqlText(crewId)} ORDER BY p.player_id LIMIT 5000`,
   );
-  return rows.map((r) => ({
-    ...r,
-    cash_cents: Number(r.cash_cents),
-    total_value_cents: Number(r.total_value_cents),
-  }));
+  const values = await Promise.all(
+    rows.map(async (row) => {
+      if (
+        row.asset_type === "stock" &&
+        row.asset_public_id &&
+        row.asset_public_id !== "TREASURY"
+      ) {
+        try {
+          return await getStockValueCents(row.asset_public_id, Number(row.quantity));
+        } catch {
+          // Fall back to the last assessed value if the quote is unavailable.
+        }
+      }
+      return Number(row.current_value_cents || 0);
+    }),
+  );
+  const totals = new Map<string, Leader>();
+  rows.forEach((row, index) => {
+    const existing = totals.get(row.player_id);
+    const total = (existing?.total_value_cents || Number(row.cash_cents)) + values[index];
+    totals.set(row.player_id, {
+      player_id: row.player_id,
+      display_name: row.display_name,
+      cash_cents: Number(row.cash_cents),
+      total_value_cents: total,
+    });
+  });
+  return [...totals.values()].sort(
+    (a, b) => b.total_value_cents - a.total_value_cents || a.player_id.localeCompare(b.player_id),
+  );
 }
 export async function provisionPortfolio(enrollment: Enrollment) {
   const pool = localPool();

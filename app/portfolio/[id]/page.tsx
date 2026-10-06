@@ -7,6 +7,7 @@ import { money, returnPercent } from "../../../lib/validation";
 import { HistoryChart } from "../history-chart";
 import { SportsMarketDetails } from "../../trade/sports/market-details";
 import { getOneMonthTreasuryYield, treasuryReturns } from "../../../lib/alpaca";
+import { getStockValueCents } from "../../../lib/alpaca";
 export default async function HoldingPage({
   params,
 }: {
@@ -17,6 +18,14 @@ export default async function HoldingPage({
   const data = await portfolio(profile.public_player_id);
   const h = data?.holdings.find((x) => x.id === id);
   if (!data || !h) notFound();
+  let liveValueCents = h.current_value_cents;
+  if (h.asset_type === "stock" && h.asset_public_id && h.asset_public_id !== "TREASURY") {
+    try {
+      liveValueCents = await getStockValueCents(h.asset_public_id, h.quantity);
+    } catch {
+      // Keep the last assessed value if the quote service is unavailable.
+    }
+  }
   const history = await readQuery<{
     recorded_date: string;
     market_value_cents: number;
@@ -59,17 +68,17 @@ export default async function HoldingPage({
         <div>
           <span className="eyebrow">Your collection</span>
           <h1>{h.display_name}</h1>
-          <p className={`detail-price `}>{money(h.current_value_cents)}</p>
+          <p className={`detail-price `}>{money(liveValueCents)}</p>
           <p>
             Current value ·{" "}
             <span
               className={
-                h.current_value_cents >= h.cost_basis_cents
+                liveValueCents >= h.cost_basis_cents
                   ? "positive"
                   : "negative"
               }
             >
-              {returnPercent(h.current_value_cents, h.cost_basis_cents)}
+              {returnPercent(liveValueCents, h.cost_basis_cents)}
             </span>{" "}
             since purchase
           </p>
@@ -87,7 +96,7 @@ export default async function HoldingPage({
             </div>
             <div>
               <dt>Current value</dt>
-              <dd>{money(h.current_value_cents)}</dd>
+              <dd>{money(liveValueCents)}</dd>
             </div>
           </dl>
           {h.asset_public_id === "TREASURY" ? (

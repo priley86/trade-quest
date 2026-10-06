@@ -3,6 +3,7 @@ import { CategoryIcon, StatCard } from "../ui";
 import { money, returnPercent } from "../../lib/validation";
 import type { Portfolio, Snapshot } from "../../lib/dolt";
 import { SellButton } from "./sell";
+import { getStockValueCents } from "../../lib/alpaca";
 
 function History({
   snapshots,
@@ -100,7 +101,7 @@ function previousDay(value: string) {
   date.setUTCDate(date.getUTCDate() - 1);
   return date.toISOString().slice(0, 10);
 }
-export function PortfolioView({
+export async function PortfolioView({
   data,
   firstName,
   crewName,
@@ -117,7 +118,33 @@ export function PortfolioView({
   base?: string;
   startingBalanceCents?: number;
 }) {
-  const invested = data.holdings.reduce((n, h) => n + h.current_value_cents, 0);
+  const liveHoldings = await Promise.all(
+    data.holdings.map(async (holding) => {
+      if (
+        holding.asset_type !== "stock" ||
+        !holding.asset_public_id ||
+        holding.asset_public_id === "TREASURY"
+      ) {
+        return holding;
+      }
+      try {
+        return {
+          ...holding,
+          current_value_cents: await getStockValueCents(
+            holding.asset_public_id,
+            holding.quantity,
+          ),
+        };
+      } catch {
+        return holding;
+      }
+    }),
+  );
+  const displayData = { ...data, holdings: liveHoldings };
+  const invested = displayData.holdings.reduce(
+    (n, h) => n + h.current_value_cents,
+    0,
+  );
   return (
     <>
       <section className="hero-strip">
@@ -140,14 +167,14 @@ export function PortfolioView({
       <section className="stats-grid" aria-label="Portfolio summary">
         <StatCard
           label="Total treasure"
-          value={money(data.cash_cents + invested)}
+          value={money(displayData.cash_cents + invested)}
           note="Cash + collection value"
           tone="blue"
           icon="🏆"
         />
         <StatCard
           label="Spending cash"
-          value={money(data.cash_cents)}
+          value={money(displayData.cash_cents)}
           note="Pretend money for the game"
           tone="yellow"
           icon="💰"
@@ -155,7 +182,7 @@ export function PortfolioView({
         <StatCard
           label="Invested"
           value={money(invested)}
-          note={`${data.holdings.length} items in the collection`}
+          note={`${displayData.holdings.length} items in the collection`}
           tone="green"
           icon="🚀"
         />
@@ -188,13 +215,13 @@ export function PortfolioView({
         <div className="section-heading">
           <h2>{own ? "Your collection" : "Collection"}</h2>
         </div>
-        {!data.holdings.length ? (
+        {!displayData.holdings.length ? (
           <p className="empty-copy">
             The backpack is empty. Trading opens in a future quest!
           </p>
         ) : (
           <div className="holding-list">
-            {data.holdings.map((h) => (
+            {displayData.holdings.map((h) => (
               <Link
                 className="holding-row"
                 key={h.id}

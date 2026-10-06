@@ -123,3 +123,16 @@ export async function getStock(symbol: string) {
     })),
   } as StockProduct;
 }
+
+export async function getStockValueCents(symbol: string, quantity: number) {
+  const r = await fetch(
+    `${base}/v2/stocks/${encodeURIComponent(symbol)}/snapshot?feed=iex`,
+    { headers, cache: "no-store", signal: AbortSignal.timeout(10000) },
+  );
+  if (!r.ok) throw new Error("The stock price is temporarily unavailable. Try selling again shortly.");
+  const snapshot = await r.json();
+  const price = Number(snapshot.latestTrade?.p || snapshot.dailyBar?.c || 0);
+  const value = Math.round(price * 100 * Number(quantity));
+  if (!value) throw new Error("The stock price is temporarily unavailable. Try selling again shortly.");
+  return value;
+}

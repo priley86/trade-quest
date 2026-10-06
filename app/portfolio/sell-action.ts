@@ -1,11 +1,25 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { requirePlayer } from "../../lib/auth";
-import { sellHolding as sell } from "../../lib/dolt";
+import { portfolio, sellHolding as sell } from "../../lib/dolt";
+import { getStockValueCents } from "../../lib/alpaca";
 export async function sellHolding(id: string): Promise<string> {
   const { profile } = await requirePlayer();
   try {
-    await sell(profile.public_player_id, id);
+    const data = await portfolio(profile.public_player_id);
+    const holding = data?.holdings.find((item) => item.id === id);
+    let saleValueCents: number | undefined;
+    if (
+      holding?.asset_type === "stock" &&
+      holding.asset_public_id &&
+      holding.asset_public_id !== "TREASURY"
+    ) {
+      saleValueCents = await getStockValueCents(
+        holding.asset_public_id,
+        holding.quantity,
+      );
+    }
+    await sell(profile.public_player_id, id, saleValueCents);
     revalidatePath("/");
     return "Sold and added to your cash.";
   } catch (error) {

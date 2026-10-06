@@ -106,7 +106,11 @@ export async function buySports(
     conn.release();
   }
 }
-export async function sellHolding(playerId: string, holdingId: string) {
+export async function sellHolding(
+  playerId: string,
+  holdingId: string,
+  saleValueCents?: number,
+) {
   const pool = localPool();
   if (!pool)
     throw new Error(
@@ -122,7 +126,9 @@ export async function sellHolding(playerId: string, holdingId: string) {
     );
     const h = rows[0];
     if (!h) throw new Error("That holding is no longer in your portfolio.");
-    const value = Number(h.current_value_cents);
+    const value = saleValueCents !== undefined && Number.isSafeInteger(saleValueCents) && saleValueCents > 0
+      ? saleValueCents
+      : Number(h.current_value_cents);
     await conn.query(
       `UPDATE player_accounts SET cash_cents=cash_cents+${value} WHERE player_id=${id}`,
     );

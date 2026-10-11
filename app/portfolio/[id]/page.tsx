@@ -8,6 +8,7 @@ import { HistoryChart } from "../history-chart";
 import { SportsMarketDetails } from "../../trade/sports/market-details";
 import { getOneMonthTreasuryYield, treasuryReturns } from "../../../lib/alpaca";
 import { getStockValueCents } from "../../../lib/alpaca";
+import { PokemonHoldingDetails } from "../../trade/pokemon/holding-details";
 export default async function HoldingPage({
   params,
 }: {
@@ -99,7 +100,9 @@ export default async function HoldingPage({
               <dd>{money(liveValueCents)}</dd>
             </div>
           </dl>
-          {h.asset_public_id === "TREASURY" ? (
+          {h.asset_type === "pokemon_card" && h.asset_public_id ? (
+            <PokemonHoldingDetails id={h.asset_public_id} />
+          ) : h.asset_public_id === "TREASURY" ? (
             <a className="text-link" href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve" target="_blank" rel="noreferrer">U.S. Treasury daily rates ↗</a>
           ) : h.product_url && h.asset_type !== "sports_card" && (
             <a

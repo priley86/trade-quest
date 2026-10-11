@@ -9,6 +9,7 @@ import { HistoryChart } from "../../../../portfolio/history-chart";
 import { SportsMarketDetails } from "../../../../trade/sports/market-details";
 import { getOneMonthTreasuryYield, treasuryReturns } from "../../../../../lib/alpaca";
 import { getStockValueCents } from "../../../../../lib/alpaca";
+import { PokemonHoldingDetails } from "../../../../trade/pokemon/holding-details";
 
 export default async function CrewHoldingPage({
   params,
@@ -113,7 +114,9 @@ export default async function CrewHoldingPage({
               <dd>{money(liveValueCents)}</dd>
             </div>
           </dl>
-          {holding.asset_public_id === "TREASURY" ? (
+          {holding.asset_type === "pokemon_card" && holding.asset_public_id ? (
+            <PokemonHoldingDetails id={holding.asset_public_id} />
+          ) : holding.asset_public_id === "TREASURY" ? (
             <a className="text-link" href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve" target="_blank" rel="noreferrer">U.S. Treasury daily rates ↗</a>
           ) : holding.product_url && holding.asset_type !== "sports_card" && (
             <a

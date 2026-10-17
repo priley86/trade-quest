@@ -191,6 +191,12 @@ export async function PortfolioView({
         snapshots={data.snapshots}
         startingBalanceCents={startingBalanceCents}
       />
+      <Link
+        className="text-link"
+        href={own ? "/transactions" : `/leaderboard/${data.player_id}/transactions`}
+      >
+        View full transaction history →
+      </Link>
       {own && (
         <section className="action-grid">
           <Link className="quest-button trade" href={`${base}/trade`}>

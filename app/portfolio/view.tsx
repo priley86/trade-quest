@@ -101,6 +101,34 @@ function previousDay(value: string) {
   date.setUTCDate(date.getUTCDate() - 1);
   return date.toISOString().slice(0, 10);
 }
+function realizedGainCents(trades: Portfolio["trades"]) {
+  const lots = new Map<string, { quantity: number; unitCost: number }[]>();
+  let realized = 0;
+  for (const trade of [...trades].reverse()) {
+    const key = `${trade.asset_type}:${trade.asset_public_id}`;
+    const assetLots = lots.get(key) || [];
+    if (trade.side === "buy") {
+      assetLots.push({
+        quantity: trade.quantity,
+        unitCost: trade.price_cents / trade.quantity,
+      });
+    } else {
+      let remaining = trade.quantity;
+      let cost = 0;
+      while (remaining > 0 && assetLots.length) {
+        const lot = assetLots[0];
+        const quantity = Math.min(remaining, lot.quantity);
+        cost += quantity * lot.unitCost;
+        lot.quantity -= quantity;
+        remaining -= quantity;
+        if (lot.quantity <= 0.0000001) assetLots.shift();
+      }
+      realized += trade.price_cents - cost;
+    }
+    lots.set(key, assetLots);
+  }
+  return Math.round(realized);
+}
 export async function PortfolioView({
   data,
   firstName,
@@ -145,6 +173,12 @@ export async function PortfolioView({
     (n, h) => n + h.current_value_cents,
     0,
   );
+  const realized = realizedGainCents(data.trades);
+  const unrealized = displayData.holdings.reduce(
+    (n, h) => n + h.current_value_cents - h.cost_basis_cents,
+    0,
+  );
+  const netGain = displayData.cash_cents + invested - startingBalanceCents;
   return (
     <>
       <section className="hero-strip">
@@ -197,6 +231,32 @@ export async function PortfolioView({
       >
         View full transaction history →
       </Link>
+      <section aria-labelledby="portfolio-stats-heading">
+        <h2 id="portfolio-stats-heading">Portfolio stats</h2>
+        <div className="stats-grid">
+          <StatCard
+            label="Realized gain/loss"
+            value={money(realized)}
+            note="Closed positions"
+            tone={realized >= 0 ? "green" : "yellow"}
+            icon="↔️"
+          />
+          <StatCard
+            label="Unrealized gain/loss"
+            value={money(unrealized)}
+            note="Current holdings"
+            tone={unrealized >= 0 ? "green" : "yellow"}
+            icon="📊"
+          />
+          <StatCard
+            label="Net gain/loss"
+            value={money(netGain)}
+            note="Compared with starting balance"
+            tone={netGain >= 0 ? "green" : "yellow"}
+            icon="🏁"
+          />
+        </div>
+      </section>
       {own && (
         <section className="action-grid">
           <Link className="quest-button trade" href={`${base}/trade`}>

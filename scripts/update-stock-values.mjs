@@ -28,7 +28,7 @@ async function treasuryYield() {
   return value / 100;
 }
 const [rows] = await db.query(
-  "select id,asset_public_id,quantity,current_value_cents,cost_basis_cents,acquired_at from holdings where asset_type='stock'",
+  "select id,asset_public_id,quantity,current_value_cents,cost_basis_cents,acquired_at from holdings where asset_type='stock' and sold_at is null",
 );
 console.log(`[stock-values] found ${rows.length} holding(s)`);
 for (const x of rows) {

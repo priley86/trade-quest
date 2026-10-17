@@ -22,6 +22,8 @@ create table if not exists holdings (
   product_url varchar(2048) not null,
   image_url varchar(2048),
   acquired_at timestamp not null,
+  sold_at timestamp null,
+  sale_value_cents bigint null,
   index idx_player (player_id),
   constraint fk_holding_player foreign key (player_id) references player_accounts(player_id)
 );

@@ -24,7 +24,7 @@ await db.query(
   "CREATE TABLE IF NOT EXISTS holding_price_history (id bigint auto_increment primary key, holding_id varchar(36) not null, recorded_date date not null, market_value_cents bigint not null, source varchar(40) not null, card_api_id varchar(120) not null, unique key uq_holding_day (holding_id, recorded_date))",
 );
 const [holdings] = await db.query(
-  "SELECT id,asset_public_id FROM holdings WHERE asset_type='sports_card'",
+  "SELECT id,asset_public_id FROM holdings WHERE asset_type='sports_card' AND sold_at IS NULL",
 );
 console.log(`[sports-values] found ${holdings.length} sports holding(s)`);
 let updated = 0,

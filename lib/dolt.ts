@@ -137,7 +137,7 @@ export async function sellHolding(
       `INSERT INTO trades (id,player_id,asset_type,asset_public_id,display_name,side,quantity,price_cents) VALUES (${sqlText(crypto.randomUUID())},${id},${sqlText(h.asset_type)},${sqlText(h.asset_public_id)},${sqlText(h.display_name)},'sell',${Number(h.quantity)},${value})`,
     );
     await conn.query(
-      `DELETE FROM holdings WHERE id=${hid} AND player_id=${id}`,
+      `UPDATE holdings SET sold_at=CURRENT_TIMESTAMP,sale_value_cents=${value} WHERE id=${hid} AND player_id=${id} AND sold_at IS NULL`,
     );
     await conn.commit();
   } catch (error) {
@@ -229,13 +229,20 @@ export async function portfolio(playerId: string): Promise<Portfolio | null> {
   if (!accounts[0]) return null;
   const [holdings, snapshots, trades] = await Promise.all([
     readQuery<Holding>(
-      `SELECT id,asset_type,asset_public_id,display_name,quantity,cost_basis_cents,current_value_cents,product_url,image_url,sport_segment,acquired_at FROM holdings WHERE player_id=${id} ORDER BY display_name LIMIT 500`,
+      `SELECT id,asset_type,asset_public_id,display_name,quantity,cost_basis_cents,current_value_cents,product_url,image_url,sport_segment,acquired_at FROM holdings WHERE player_id=${id} AND sold_at IS NULL ORDER BY display_name LIMIT 500`,
     ),
     readQuery<Snapshot>(
-      `SELECT snapshot_date,total_value_cents FROM portfolio_snapshots WHERE player_id=${id} ORDER BY snapshot_date DESC LIMIT 90`,
+      `SELECT snapshot_date,total_value_cents
+       FROM portfolio_snapshots
+       WHERE player_id=${id}
+         AND (
+           DAYOFWEEK(snapshot_date)=1
+           OR snapshot_date=(SELECT MIN(snapshot_date) FROM portfolio_snapshots WHERE player_id=${id})
+         )
+       ORDER BY snapshot_date DESC LIMIT 90`,
     ),
     readQuery<Trade>(
-      `SELECT t.id,t.asset_type,t.asset_public_id,COALESCE(t.display_name,h.display_name,t.asset_public_id) AS display_name,t.side,t.quantity,t.price_cents,t.executed_at FROM trades t LEFT JOIN holdings h ON h.asset_public_id=t.asset_public_id AND h.player_id=t.player_id WHERE t.player_id=${id} ORDER BY t.executed_at DESC LIMIT 500`,
+      `SELECT t.id,t.asset_type,t.asset_public_id,COALESCE(t.display_name,h.display_name,t.asset_public_id) AS display_name,t.side,t.quantity,t.price_cents,t.executed_at FROM trades t LEFT JOIN holdings h ON h.asset_public_id=t.asset_public_id AND h.player_id=t.player_id AND h.sold_at IS NULL WHERE t.player_id=${id} ORDER BY t.executed_at DESC LIMIT 500`,
     ),
   ]);
   return {
@@ -268,7 +275,7 @@ export async function leaderboard(crewId: string): Promise<Leader[]> {
     quantity?: number;
     current_value_cents?: number;
   }>(
-    `SELECT p.player_id,p.display_name,p.cash_cents,h.id AS holding_id,h.asset_type,h.asset_public_id,h.quantity,h.current_value_cents FROM player_accounts p LEFT JOIN holdings h ON h.player_id=p.player_id WHERE p.crew_public_id=${sqlText(crewId)} ORDER BY p.player_id LIMIT 5000`,
+    `SELECT p.player_id,p.display_name,p.cash_cents,h.id AS holding_id,h.asset_type,h.asset_public_id,h.quantity,h.current_value_cents FROM player_accounts p LEFT JOIN holdings h ON h.player_id=p.player_id AND h.sold_at IS NULL WHERE p.crew_public_id=${sqlText(crewId)} ORDER BY p.player_id LIMIT 5000`,
   );
   const values = await Promise.all(
     rows.map(async (row) => {

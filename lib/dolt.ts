@@ -237,6 +237,7 @@ export async function portfolio(playerId: string): Promise<Portfolio | null> {
        WHERE player_id=${id}
          AND (
            DAYOFWEEK(snapshot_date)=1
+           OR snapshot_date=CURRENT_DATE
            OR snapshot_date=(SELECT MIN(snapshot_date) FROM portfolio_snapshots WHERE player_id=${id})
          )
        ORDER BY snapshot_date DESC LIMIT 90`,

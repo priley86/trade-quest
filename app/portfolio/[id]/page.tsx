@@ -33,18 +33,27 @@ export default async function HoldingPage({
   }>(
     `SELECT recorded_date,market_value_cents FROM holding_price_history WHERE holding_id='${id}' ORDER BY recorded_date DESC`,
   );
-  const chartValues = [
-    {
-      date: h.acquired_at
-        ? String(h.acquired_at).slice(0, 10)
-        : String(history[history.length - 1]?.recorded_date ?? ""),
-      cents: h.cost_basis_cents,
-    },
-    ...[...history].reverse().map((p: any) => ({
-      date: String(p.recorded_date).slice(0, 10),
-      cents: Number(p.market_value_cents),
-    })),
-  ];
+  const purchasePoint = {
+    date: h.acquired_at
+      ? dateOnly(h.acquired_at)
+      : dateOnly(history[history.length - 1]?.recorded_date ?? ""),
+    cents: h.cost_basis_cents,
+  };
+  const selectedHistory =
+    h.asset_type === "stock"
+      ? selectStockHistory(history)
+      : history.map((point) => ({
+          date: dateOnly(point.recorded_date),
+          cents: Number(point.market_value_cents),
+        }));
+  const orderedHistory = [purchasePoint, ...selectedHistory]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .filter(
+      (point, index, points) =>
+        index === 0 || point.date !== points[index - 1].date,
+    );
+  const visibleChartValues = orderedHistory;
+  const visibleHistory = [...orderedHistory].reverse();
   return (
     <AppShell active="portfolio" profile={profile}>
       <Link className="text-link" href="/">
@@ -125,13 +134,12 @@ export default async function HoldingPage({
       </section>
       <section className="chart-card">
         <h2>Recorded value history</h2>
-        {chartValues.length > 1 && <HistoryChart values={chartValues} />}
-        {history.length ? (
+        {visibleChartValues.length > 1 && <HistoryChart values={visibleChartValues} />}
+        {visibleHistory.length ? (
           <ul>
-            {history.map((point: any) => (
-              <li key={point.recorded_date}>
-                {String(point.recorded_date).slice(0, 10)} ·{" "}
-                {money(Number(point.market_value_cents))}
+            {visibleHistory.map((point) => (
+              <li key={point.date}>
+                {point.date} · {money(point.cents)}
               </li>
             ))}
           </ul>
@@ -143,6 +151,39 @@ export default async function HoldingPage({
       </section>
     </AppShell>
   );
+}
+
+function selectStockHistory(
+  history: { recorded_date: string; market_value_cents: number }[],
+) {
+  const points = history
+    .map((point) => ({
+      date: dateOnly(point.recorded_date),
+      cents: Number(point.market_value_cents),
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  if (!points.length) return points;
+  const lastSunday = [...points]
+    .reverse()
+    .find((point) => new Date(`${point.date}T00:00:00Z`).getUTCDay() === 0);
+  if (!lastSunday) return points;
+  const cutoff = new Date(`${lastSunday.date}T00:00:00Z`);
+  cutoff.setUTCDate(cutoff.getUTCDate() - 6);
+  const cutoffDate = cutoff.toISOString().slice(0, 10);
+  const selected = points.filter(
+    (point) =>
+      point.date >= cutoffDate ||
+      new Date(`${point.date}T00:00:00Z`).getUTCDay() === 0,
+  );
+  return selected.filter(
+    (point, index) => index === 0 || point.date !== selected[index - 1].date,
+  );
+}
+
+function dateOnly(value: string | Date) {
+  return value instanceof Date
+    ? value.toISOString().slice(0, 10)
+    : String(value).slice(0, 10);
 }
 
 async function TreasuryReturnSnapshot() {
